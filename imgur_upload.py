@@ -3,6 +3,7 @@
 
 import pycurl
 import StringIO
+import sys
 
 client_id = '55080e3fd8d0644'
 client_secret = 'd021464e1b3244d6f73749b94d17916cf361da24'
@@ -33,14 +34,25 @@ def get_albums(account='me'):
     c.close()
 
 
-def upload_images(image_path='/home/carlcarl/Downloads/rEHCq.jpg', album_id='9DpVh'):
+def upload_images(image_path='/home/carlcarl/Downloads/rEHCq.jpg',
+                  anonymous=False, album_id='9DpVh'):
     url = 'https://api.imgur.com/3/image'
     c = pycurl.Curl()
+    if anonymous:
+        print('Upload images...')
+        c.setopt(c.HTTPPOST, [('image', (c.FORM_FILE, image_path))])
+    else:
+        access_token = read_token()
+        if access_token == '':
+            print('Error: Access token should not be empty')
+            sys.exit(1)
+        else:
+            print('Upload images to the album...')
+            c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
+            c.setopt(c.HTTPPOST, [('album_id', album_id), ('image', (c.FORM_FILE, image_path))])
+
     c.setopt(pycurl.VERBOSE, 1)
     c.setopt(c.POST, 1)
-    c.setopt(c.HTTPPOST, [('album_id', album_id), ('image', (c.FORM_FILE, image_path))])
-    access_token = read_token()
-    c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
     c.fp = StringIO.StringIO()
     c.setopt(pycurl.URL, url)
     c.setopt(c.WRITEFUNCTION, c.fp.write)
@@ -58,9 +70,7 @@ def auth():
 
     url = 'https://api.imgur.com/oauth2/token'
     c = pycurl.Curl()
-    c.setopt(pycurl.VERBOSE, 1)
-    c.setopt(pycurl.FOLLOWLOCATION, 1)
-    c.setopt(pycurl.MAXREDIRS, 5)
+    # c.setopt(pycurl.VERBOSE, 1)
     c.setopt(c.POST, 1)
     c.setopt(c.POSTFIELDS, 'client_id=%s&client_secret=%s&grant_type=pin&pin=%s'
              % (client_id, client_secret, pin))
