@@ -8,7 +8,7 @@ from ConfigParser import SafeConfigParser
 import json
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 
@@ -18,13 +18,13 @@ def read_tokens(config='imgur.conf'):
     parser.read(config)
 
     try:
-        access_token = parser.get('token', 'access_token')
+        access_token = parser.get('Token', 'access_token')
     except:
         logging.warning('Can\'t find access token, set to empty')
         access_token = None
 
     try:
-        refresh_token = parser.get('token', 'refresh_token')
+        refresh_token = parser.get('Token', 'refresh_token')
     except:
         logging.warning('Can\'t find refresh token, set to empty')
         refresh_token = None
@@ -38,8 +38,8 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
     if access_token is None:
-        # If don't assign value to access_token,
-        # then read from config file
+        # If without assigning a value to access_token,
+        # then just read the value from config file
         tokens = read_tokens()
         access_token = tokens['access_token']
     if access_token is None:
@@ -159,20 +159,28 @@ def check_success(result):
     return True
 
 
-def write_token(result):
+def write_token(result, config='imgur.conf'):
     """
     There will be maybe more setting needed to be written to config
     So I just pass `result`
     """
-    # TODO: Rewrite to config file
     logging.info('Access token: %s' % result['access_token'])
     logging.info('Refresh token: %s' % result['refresh_token'])
 
+    parser = SafeConfigParser()
+    parser.read(config)
+    if not parser.has_section('Token'):
+        parser.add_section('Token')
+    parser.set('Token', 'access_token', result['access_token'])
+    parser.set('Token', 'refresh_token', result['refresh_token'])
+    with open(config, 'wb') as f:
+        parser.write(f)
+
 
 if __name__ == '__main__':
-    upload_images('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
+    # upload_images('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
     # get_albums('carlcarl')
     # get_albums()
     # auth()
-    # tokens = read_tokens()
-    # update_token(tokens['refresh_token'])
+    tokens = read_tokens()
+    update_token(tokens['refresh_token'])
