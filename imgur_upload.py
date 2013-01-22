@@ -43,11 +43,11 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
         tokens = read_tokens()
         access_token = tokens['access_token']
     if access_token is None:
-        logging.warning('Get info without access token')
+        logging.warning('List albums without access token')
         c.setopt(c.HTTPHEADER, ['Authorization: Client-ID %s' % client_id])
     else:
-        logging.info('Get info with access token')
-        logging.debug(access_token)
+        logging.info('List albums  with access token')
+        logging.debug('Access token: %s' % access_token)
         c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
     c.fp = StringIO.StringIO()
     c.setopt(pycurl.URL, url)
