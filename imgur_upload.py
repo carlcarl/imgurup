@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 
+import argparse
 import pycurl
 import StringIO
 import sys
@@ -64,7 +65,7 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
                   % (data['id'], data['title'], data['privacy']))
 
 
-def upload_images(image_path, anonymous, album_id):
+def upload_images(image_path=None, anonymous=True, album_id=None):
     url = 'https://api.imgur.com/3/image'
     c = pycurl.Curl()
     if anonymous:
@@ -103,6 +104,8 @@ def update_token(refresh_token=None, giant_type='refresh_token'):
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
     if refresh_token is None:
+        # Without assigning a value to the refresh_token parameter,
+        # read the value from config file(Defualt is imgur.conf)
         tokens = read_tokens()
         refresh_token = tokens['refresh_token']
     if refresh_token is None:
@@ -177,10 +180,38 @@ def write_token(result, config='imgur.conf'):
         parser.write(f)
 
 
-if __name__ == '__main__':
+def main():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-A', action='store_true', help='Authorization')
+    group.add_argument('-U', action='store_true', help='Update tokens')
+    group.add_argument('-l', nargs='?', const=None, default=False,
+                       help='List all albums', metavar='username')
+    group.add_argument('-u', nargs='?', const=None, default=False,
+                       help='Upload images', metavar='image_path')
+    group.add_argument('-d', default=None, help='Album id')
+    args = parser.parse_args()
+
+    if args.A is True:
+        auth()
+    elif args.U is True:
+        update_token()
+    elif args.l is not False:
+        get_albums(args.l)
+    elif args.u is not False:
+        anonymous = True if args.d is None else False
+        upload_images(args.u, anonymous, args.d)
+    else:
+        logging.error('Unknown arguments')
+        logging.debug(args)
+        sys.exit(1)
+
     # upload_images('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
     # get_albums('carlcarl')
     # get_albums()
-    # auth()
-    tokens = read_tokens()
-    update_token(tokens['refresh_token'])
+    # tokens = read_tokens()
+    # update_token(tokens['refresh_token'])
+
+
+if __name__ == '__main__':
+    main()
