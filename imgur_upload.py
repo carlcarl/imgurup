@@ -9,7 +9,7 @@ from ConfigParser import SafeConfigParser
 import json
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 
@@ -65,11 +65,11 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
                   % (data['id'], data['title'], data['privacy']))
 
 
-def upload_images(image_path=None, anonymous=True, album_id=None):
+def upload_image(image_path=None, anonymous=True, album_id=None):
     url = 'https://api.imgur.com/3/image'
     c = pycurl.Curl()
     if anonymous:
-        print('Upload images...')
+        print('Upload image...')
         c.setopt(c.POST, 1)
         c.setopt(c.HTTPPOST, [('image', (c.FORM_FILE, image_path))])
     else:
@@ -79,7 +79,7 @@ def upload_images(image_path=None, anonymous=True, album_id=None):
             logging.error('Access token should not be empty')
             sys.exit(1)
         else:
-            print('Upload images to the album...')
+            print('Upload image to the album...')
             c.setopt(c.POST, 1)
             c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
             c.setopt(c.HTTPPOST, [('album_id', album_id), ('image', (c.FORM_FILE, image_path))])
@@ -182,31 +182,40 @@ def write_token(result, config='imgur.conf'):
 
 def main():
     parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-A', action='store_true', help='Authorization')
-    group.add_argument('-U', action='store_true', help='Update tokens')
-    group.add_argument('-l', nargs='?', const=None, default=False,
-                       help='List all albums', metavar='username')
-    group.add_argument('-u', nargs='?', const=None, default=False,
-                       help='Upload images', metavar='image_path')
-    group.add_argument('-d', default=None, help='Album id')
+    p = parser.add_subparsers(title='Commands available', dest='command')
+    p.add_parser('auth', help='Authorization tokens')
+    p.add_parser('update', help='Update tokens')
+    list_parser = p.add_parser('list', help='List all albums')
+    list_parser.add_argument('-u', nargs='?', const=None, default=False,
+                             metavar='username')
+    upload_parser = p.add_parser('upload', help='Upload image')
+    upload_parser.add_argument('-d', default=None,
+                               help='The album you want your image to be uploaded to',
+                               metavar='<ALBUM_ID>')
+    upload_parser.add_argument('-f', required=True,
+                               help='The image you want to upload',
+                               metavar='<IMAGE_PATH>')
     args = parser.parse_args()
 
-    if args.A is True:
+    if args.command == 'auth':
+        logging.debug('auth token')
         auth()
-    elif args.U is True:
+    elif args.command == 'update':
+        logging.debug('update token')
         update_token()
-    elif args.l is not False:
-        get_albums(args.l)
-    elif args.u is not False:
+    elif args.command == 'list':
+        logging.debug('list albums')
+        get_albums(args.u)
+    elif args.command == 'upload':
+        logging.debug('upload image')
         anonymous = True if args.d is None else False
-        upload_images(args.u, anonymous, args.d)
+        upload_image(args.f, anonymous, args.d)
     else:
-        logging.error('Unknown arguments')
+        logging.error('Unknown commands')
         logging.debug(args)
         sys.exit(1)
 
-    # upload_images('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
+    # upload_image('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
     # get_albums('carlcarl')
     # get_albums()
     # tokens = read_tokens()
