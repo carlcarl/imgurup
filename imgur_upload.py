@@ -34,7 +34,7 @@ def read_tokens(config='imgur.conf'):
             'refresh_token': refresh_token}
 
 
-def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
+def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
     url = 'https://api.imgur.com/3/account/%s/albums' % account
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
@@ -44,7 +44,7 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
         tokens = read_tokens()
         access_token = tokens['access_token']
     if access_token is None:
-        logging.warning('List albums without access token')
+        logging.warning('List albums without a access token')
         c.setopt(c.HTTPHEADER, ['Authorization: Client-ID %s' % client_id])
     else:
         logging.info('List albums  with access token')
@@ -54,7 +54,6 @@ def get_albums(client_id=CLIENT_ID, account='me', access_token=None):
     c.setopt(pycurl.URL, url)
     c.setopt(c.WRITEFUNCTION, c.fp.write)
     c.perform()
-    # print(c.fp.getvalue())
     result = json.loads(c.fp.getvalue())
     c.close()
     if check_success(result) is False:
@@ -99,7 +98,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         print('Delete link: http://imgur.com/delete/%s' % result['data']['deletehash'])
 
 
-def update_token(refresh_token=None, giant_type='refresh_token'):
+def update_token(refresh_token=None):
     url = 'https://api.imgur.com/oauth2/token'
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
@@ -205,7 +204,7 @@ def main():
         update_token()
     elif args.command == 'list':
         logging.debug('list albums')
-        get_albums(args.u)
+        list_albums(args.u)
     elif args.command == 'upload':
         logging.debug('upload image')
         anonymous = True if args.d is None else False
@@ -216,8 +215,8 @@ def main():
         sys.exit(1)
 
     # upload_image('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
-    # get_albums('carlcarl')
-    # get_albums()
+    # list_albums('carlcarl')
+    # list_albums()
     # tokens = read_tokens()
     # update_token(tokens['refresh_token'])
 
