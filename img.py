@@ -215,10 +215,6 @@ def main():
         sys.exit(1)
 
     # upload_image('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
-    # list_albums('carlcarl')
-    # list_albums()
-    # tokens = read_tokens()
-    # update_token(tokens['refresh_token'])
 
 
 if __name__ == '__main__':
