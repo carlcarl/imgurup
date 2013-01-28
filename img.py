@@ -60,7 +60,7 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
         sys.exit(1)
     else:
         for data in result['data']:
-            print('id: {data[id]}, title: {data[title]}, privacy: {data[privacy]}'.format(data))
+            print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
 
 
 def upload_image(image_path=None, anonymous=True, album_id=None):
@@ -114,8 +114,8 @@ def update_token(refresh_token=None):
         c.setopt(c.POST, 1)
         c.setopt(c.POSTFIELDS,
                  'refresh_token={refresh_token}&client_id={client_id}\
-                 &client_secret={client_secret}\
-                 &grant_type=refresh_token'
+&client_secret={client_secret}\
+&grant_type=refresh_token'
                  .format(refresh_token=refresh_token, client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
         c.fp = StringIO.StringIO()
         c.setopt(pycurl.URL, url)
@@ -132,9 +132,9 @@ def update_token(refresh_token=None):
 
 def auth():
     auth_url = 'https://api.imgur.com/oauth2/authorize?\
-            client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
+client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
     print ('Visit this URL in your browser: ' + auth_url)
-    pin = raw_input('Enter PIN from browser: ')
+    pin = raw_input('Enter PIN code from displayed in the browser: ')
 
     url = 'https://api.imgur.com/oauth2/token'
     c = pycurl.Curl()
