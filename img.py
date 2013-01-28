@@ -166,8 +166,8 @@ def write_token(result, config='imgur.conf'):
     There will be maybe more setting needed to be written to config
     So I just pass `result`
     """
-    logging.info('Access token: %s' % result['access_token'])
-    logging.info('Refresh token: %s' % result['refresh_token'])
+    logging.info('Access token: %s', result['access_token'])
+    logging.info('Refresh token: %s', result['refresh_token'])
 
     parser = SafeConfigParser()
     parser.read(config)
