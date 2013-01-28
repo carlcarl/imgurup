@@ -9,7 +9,7 @@ from ConfigParser import SafeConfigParser
 import json
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 
