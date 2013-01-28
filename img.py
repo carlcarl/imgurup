@@ -15,6 +15,13 @@ CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 
 
 def read_tokens(config='imgur.conf'):
+    """
+    Read the token valuse from the config file
+    Args:
+        config: the name of the config
+    Returns:
+        A tuple which contains access_token and refresh_token
+    """
     parser = SafeConfigParser()
     parser.read(config)
 
@@ -35,6 +42,9 @@ def read_tokens(config='imgur.conf'):
 
 
 def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
+    """
+    List albums of the account
+    """
     url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
@@ -64,6 +74,13 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
 
 
 def upload_image(image_path=None, anonymous=True, album_id=None):
+    """
+    Upload a image
+    Args:
+        image_path: the path of the image you want to upload
+        anonymous: True or False
+        album_id: the id of the album
+    """
     url = 'https://api.imgur.com/3/image'
     c = pycurl.Curl()
     if anonymous:
@@ -98,6 +115,11 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
 
 
 def update_token(refresh_token=None):
+    """
+    Update the access token and refresh token
+    Args:
+        refresh_token: the value of the refresh_token. If it's None, then read from the config again.
+    """
     url = 'https://api.imgur.com/oauth2/token'
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
@@ -121,7 +143,6 @@ def update_token(refresh_token=None):
         c.setopt(pycurl.URL, url)
         c.setopt(c.WRITEFUNCTION, c.fp.write)
         c.perform()
-        # print(c.fp.getvalue())
         result = json.loads(c.fp.getvalue())
         if check_success(result) is False:
             sys.exit(1)
@@ -131,6 +152,9 @@ def update_token(refresh_token=None):
 
 
 def auth():
+    """
+    Authorization
+    """
     auth_url = 'https://api.imgur.com/oauth2/authorize?\
 client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
     print ('Visit this URL in your browser: ' + auth_url)
@@ -156,6 +180,13 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_
 
 
 def check_success(result):
+    """
+    Check the value of the result is success or not
+    Args:
+        result: the result return from the server
+    Returns:
+        True if success, else False
+    """
     if ('success' in result) and (result['success'] is False):
         logging.error(result['data']['error'])
         logging.debug(json.dumps(result))
@@ -165,8 +196,12 @@ def check_success(result):
 
 def write_token(result, config='imgur.conf'):
     """
+    Write token value to the config
     There will be maybe more setting needed to be written to config
     So I just pass `result`
+    Args:
+        result: the result return from the server
+        config: the name of the config file
     """
     logging.info('Access token: %s', result['access_token'])
     logging.info('Refresh token: %s', result['refresh_token'])
