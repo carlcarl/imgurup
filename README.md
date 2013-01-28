@@ -41,5 +41,5 @@ Commands available: <br />
 	./img.py upload -f ./test.jpg -d AB123
 	
 ## Packcage Dependency
-* pucurl (Will use `requests` instead)
+* pycurl (Will use `requests` instead)
 
