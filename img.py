@@ -35,7 +35,7 @@ def read_tokens(config='imgur.conf'):
 
 
 def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
-    url = 'https://api.imgur.com/3/account/%s/albums' % account
+    url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
     if access_token is None:
@@ -45,11 +45,11 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
         access_token = tokens['access_token']
     if access_token is None:
         logging.warning('List albums without a access token')
-        c.setopt(c.HTTPHEADER, ['Authorization: Client-ID %s' % client_id])
+        c.setopt(c.HTTPHEADER, ['Authorization: Client-ID {client_id}'.format(client_id=client_id)])
     else:
         logging.info('List albums  with access token')
-        logging.debug('Access token: %s' % access_token)
-        c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
+        logging.debug('Access token: {access_token}'.format(access_token=access_token))
+        c.setopt(c.HTTPHEADER, ['Authorization: Bearer {access_token}'.format(access_token=access_token)])
     c.fp = StringIO.StringIO()
     c.setopt(pycurl.URL, url)
     c.setopt(c.WRITEFUNCTION, c.fp.write)
@@ -60,8 +60,7 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
         sys.exit(1)
     else:
         for data in result['data']:
-            print('id: %s, title: %s, privacy: %s'
-                  % (data['id'], data['title'], data['privacy']))
+            print('id: {data[id]}, title: {data[title]}, privacy: {data[privacy]}'.format(data))
 
 
 def upload_image(image_path=None, anonymous=True, album_id=None):
@@ -80,7 +79,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         else:
             print('Upload image to the album...')
             c.setopt(c.POST, 1)
-            c.setopt(c.HTTPHEADER, ['Authorization: Bearer %s' % access_token])
+            c.setopt(c.HTTPHEADER, ['Authorization: Bearer {access_token}'.format(access_token=access_token)])
             c.setopt(c.HTTPPOST, [('album_id', album_id), ('image', (c.FORM_FILE, image_path))])
 
     # c.setopt(pycurl.VERBOSE, 1)
@@ -94,8 +93,8 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     if check_success(result) is False:
         sys.exit(1)
     else:
-        print('Link: %s' % result['data']['link'].replace('\\', ''))
-        print('Delete link: http://imgur.com/delete/%s' % result['data']['deletehash'])
+        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
+        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
 
 def update_token(refresh_token=None):
@@ -114,8 +113,10 @@ def update_token(refresh_token=None):
     else:
         c.setopt(c.POST, 1)
         c.setopt(c.POSTFIELDS,
-                 'refresh_token=%s&client_id=%s&client_secret=%s&grant_type=refresh_token'
-                 % (refresh_token, CLIENT_ID, CLIENT_SECRET))
+                 'refresh_token={refresh_token}&client_id={client_id}\
+                 &client_secret={client_secret}\
+                 &grant_type=refresh_token'
+                 .format(refresh_token=refresh_token, client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
         c.fp = StringIO.StringIO()
         c.setopt(pycurl.URL, url)
         c.setopt(c.WRITEFUNCTION, c.fp.write)
@@ -130,7 +131,8 @@ def update_token(refresh_token=None):
 
 
 def auth():
-    auth_url = 'https://api.imgur.com/oauth2/authorize?client_id=%s&response_type=pin&state=carlcarl' % CLIENT_ID
+    auth_url = 'https://api.imgur.com/oauth2/authorize?\
+            client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
     print ('Visit this URL in your browser: ' + auth_url)
     pin = raw_input('Enter PIN from browser: ')
 
@@ -138,8 +140,8 @@ def auth():
     c = pycurl.Curl()
     # c.setopt(pycurl.VERBOSE, 1)
     c.setopt(c.POST, 1)
-    c.setopt(c.POSTFIELDS, 'client_id=%s&client_secret=%s&grant_type=pin&pin=%s'
-             % (CLIENT_ID, CLIENT_SECRET, pin))
+    c.setopt(c.POSTFIELDS, 'client_id={client_id}&client_secret={client_secret}&grant_type=pin&pin={pin}'
+             .format(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, pin=pin))
     c.fp = StringIO.StringIO()
     c.setopt(pycurl.URL, url)
     c.setopt(c.WRITEFUNCTION, c.fp.write)
