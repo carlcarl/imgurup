@@ -2,8 +2,7 @@
 # coding: utf-8
 
 import argparse
-import pycurl
-import StringIO
+import requests
 import sys
 from ConfigParser import SafeConfigParser
 import json
@@ -46,8 +45,6 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
     List albums of the account
     """
     url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
-    c = pycurl.Curl()
-    # c.setopt(pycurl.VERBOSE, 1)
     if access_token is None:
         # If without assigning a value to access_token,
         # then just read the value from config file
@@ -55,17 +52,14 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
         access_token = tokens['access_token']
     if access_token is None:
         logging.warning('List albums without a access token')
-        c.setopt(c.HTTPHEADER, ['Authorization: Client-ID {client_id}'.format(client_id=client_id)])
+        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=client_id)}
     else:
         logging.info('List albums  with access token')
         logging.debug('Access token: {access_token}'.format(access_token=access_token))
-        c.setopt(c.HTTPHEADER, ['Authorization: Bearer {access_token}'.format(access_token=access_token)])
-    c.fp = StringIO.StringIO()
-    c.setopt(pycurl.URL, url)
-    c.setopt(c.WRITEFUNCTION, c.fp.write)
-    c.perform()
-    result = json.loads(c.fp.getvalue())
-    c.close()
+        headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
+
+    result = requests.get(url, headers=headers, verify=False).text
+    result = json.loads(result)
     if check_success(result) is False:
         sys.exit(1)
     else:
@@ -82,11 +76,12 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         album_id: the id of the album
     """
     url = 'https://api.imgur.com/3/image'
-    c = pycurl.Curl()
+    data = {}
+    headers = {}
     if anonymous:
         print('Upload image...')
-        c.setopt(c.POST, 1)
-        c.setopt(c.HTTPPOST, [('image', (c.FORM_FILE, image_path))])
+        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
+        files = {'image': open(image_path, 'rb')}
     else:
         tokens = read_tokens()
         access_token = tokens['access_token']
@@ -95,18 +90,12 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
             sys.exit(1)
         else:
             print('Upload image to the album...')
-            c.setopt(c.POST, 1)
-            c.setopt(c.HTTPHEADER, ['Authorization: Bearer {access_token}'.format(access_token=access_token)])
-            c.setopt(c.HTTPPOST, [('album_id', album_id), ('image', (c.FORM_FILE, image_path))])
+            files = {'image': open(image_path, 'rb')}
+            data['album_id'] = album_id
+            headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
 
-    # c.setopt(pycurl.VERBOSE, 1)
-    c.fp = StringIO.StringIO()
-    c.setopt(pycurl.URL, url)
-    c.setopt(c.WRITEFUNCTION, c.fp.write)
-    c.perform()
-    # print(c.fp.getvalue())
-    result = json.loads(c.fp.getvalue())
-    c.close()
+    result = requests.post(url, headers=headers, data=data, files=files, verify=False).text
+    result = json.loads(result)
     if check_success(result) is False:
         sys.exit(1)
     else:
@@ -121,8 +110,6 @@ def update_token(refresh_token=None):
         refresh_token: the value of the refresh_token. If it's None, then read from the config again.
     """
     url = 'https://api.imgur.com/oauth2/token'
-    c = pycurl.Curl()
-    # c.setopt(pycurl.VERBOSE, 1)
     if refresh_token is None:
         # Without assigning a value to the refresh_token parameter,
         # read the value from config file(Defualt is imgur.conf)
@@ -133,22 +120,15 @@ def update_token(refresh_token=None):
         # TODO: Maybe use auth() again
         sys.exit(1)
     else:
-        c.setopt(c.POST, 1)
-        c.setopt(c.POSTFIELDS,
-                 'refresh_token={refresh_token}&client_id={client_id}\
-&client_secret={client_secret}\
-&grant_type=refresh_token'
-                 .format(refresh_token=refresh_token, client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
-        c.fp = StringIO.StringIO()
-        c.setopt(pycurl.URL, url)
-        c.setopt(c.WRITEFUNCTION, c.fp.write)
-        c.perform()
-        result = json.loads(c.fp.getvalue())
+        result = requests.post(url,
+                               data={'refresh_token': refresh_token, 'client_id': CLIENT_ID,
+                                     'client_secret': CLIENT_SECRET, 'grant_type': 'refresh_token'},
+                               verify=False).text
+        result = json.loads(result)
         if check_success(result) is False:
             sys.exit(1)
         else:
             write_token(result)
-        c.close()
 
 
 def auth():
@@ -161,22 +141,15 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_
     pin = raw_input('Enter PIN code from displayed in the browser: ')
 
     url = 'https://api.imgur.com/oauth2/token'
-    c = pycurl.Curl()
-    # c.setopt(pycurl.VERBOSE, 1)
-    c.setopt(c.POST, 1)
-    c.setopt(c.POSTFIELDS, 'client_id={client_id}&client_secret={client_secret}&grant_type=pin&pin={pin}'
-             .format(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, pin=pin))
-    c.fp = StringIO.StringIO()
-    c.setopt(pycurl.URL, url)
-    c.setopt(c.WRITEFUNCTION, c.fp.write)
-    c.perform()
-    # print(c.fp.getvalue())
-    result = json.loads(c.fp.getvalue())
+    result = requests.post(url,
+                           data={'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET,
+                                 'grant_type': 'pin', 'pin': pin},
+                           verify=False).text
+    result = json.loads(result)
     if check_success(result) is False:
         sys.exit(1)
     else:
         write_token(result)
-    c.close()
 
 
 def check_success(result):
