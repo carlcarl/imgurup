@@ -251,8 +251,6 @@ def main():
         logging.debug(args)
         sys.exit(1)
 
-    # upload_image('/home/carlcarl/Downloads/rEHCq.jpg', False, '9DpVh')
-
 
 if __name__ == '__main__':
     main()
