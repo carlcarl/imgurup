@@ -79,7 +79,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     data = {}
     headers = {}
     if anonymous:
-        print('Upload image...')
+        print('Upload the image anonymously...')
         headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
         files = {'image': open(image_path, 'rb')}
     else:
@@ -88,11 +88,14 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         if access_token is None:
             logging.error('Access token should not be empty')
             sys.exit(1)
+        elif album_id is None:  # Means the image not belong to any album
+            print('Upload the image...')
         else:
-            print('Upload image to the album...')
-            files = {'image': open(image_path, 'rb')}
+            print('Upload the image to the album...')
             data['album_id'] = album_id
-            headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
+
+        headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
+        files = {'image': open(image_path, 'rb')}
 
     result = requests.post(url, headers=headers, data=data, files=files, verify=False).text
     result = json.loads(result)
@@ -198,7 +201,8 @@ def main():
     list_parser.add_argument('-u', nargs='?', const=None, default=False,
                              metavar='username')
     upload_parser = p.add_parser('upload', help='Upload image')
-    upload_parser.add_argument('-d', default=None,
+    upload_parser.add_argument('-d', nargs='?',
+                               default=None,
                                help='The album you want your image to be uploaded to',
                                metavar='<ALBUM_ID>')
     upload_parser.add_argument('-f', required=True,

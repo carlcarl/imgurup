@@ -34,12 +34,15 @@ Commands available: <br />
 
 * upload
 
+	// Upload anonymously
 	./img.py upload -f ./test.jpg
 
-	or add the album id 
-	
+	// Upload to your account
+	./img.py upload -f ./test.jpg -d
+
+	// And specify the album id 
 	./img.py upload -f ./test.jpg -d AB123
-	
+
 ## Packcage Dependency
 * requests
 
