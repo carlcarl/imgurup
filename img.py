@@ -40,9 +40,17 @@ def read_tokens(config='imgur.conf'):
             'refresh_token': refresh_token}
 
 
-def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
+def list_albums(account='me', access_token=None):
     """
     List albums of the account
+    """
+    for data in get_albums(account, access_token):
+        print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
+
+
+def get_albums(account='me', access_token=None):
+    """
+    Return albums of the account
     """
     url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
     if access_token is None:
@@ -52,7 +60,7 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
         access_token = tokens['access_token']
     if access_token is None:
         logging.warning('List albums without a access token')
-        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=client_id)}
+        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
     else:
         logging.info('List albums  with access token')
         logging.debug('Access token: {access_token}'.format(access_token=access_token))
@@ -61,10 +69,11 @@ def list_albums(client_id=CLIENT_ID, account='me', access_token=None):
     result = requests.get(url, headers=headers, verify=False).text
     result = json.loads(result)
     if check_success(result) is False:
+        if result['data']['error'] == 'Unauthorized':
+            print('You may have to update your tokens with `update` subcommand')
         sys.exit(1)
     else:
-        for data in result['data']:
-            print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
+        return result['data']
 
 
 def upload_image(image_path=None, anonymous=True, album_id=None):
@@ -89,7 +98,21 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
             logging.error('Access token should not be empty')
             sys.exit(1)
         elif album_id is None:  # Means the image not belong to any album
-            print('Upload the image...')
+            albums = get_albums()
+            print('Select the number of the album you want to upload: ')
+            data_map = []
+            i = 1
+            for d in albums:
+                print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
+                data_map.append(d)
+                i += 1
+            print('{i}) Do not upload to any album'.format(i=i))
+            n = int(input())
+            if n != i:
+                data['album_id'] = data_map[n - 1]['id']
+                print('Upload the image to the album...')
+            else:
+                print('Upload the image...')
         else:
             print('Upload the image to the album...')
             data['album_id'] = album_id
@@ -205,6 +228,8 @@ def main():
                                default=None,
                                help='The album you want your image to be uploaded to',
                                metavar='<ALBUM_ID>')
+    upload_parser.add_argument('-n', action='store_true',
+                               help='Anonymous')
     upload_parser.add_argument('-f', required=True,
                                help='The image you want to upload',
                                metavar='<IMAGE_PATH>')
@@ -221,8 +246,7 @@ def main():
         list_albums(args.u)
     elif args.command == 'upload':
         logging.debug('upload image')
-        anonymous = True if args.d is None else False
-        upload_image(args.f, anonymous, args.d)
+        upload_image(args.f, args.n, args.d)
     else:
         logging.error('Unknown commands')
         logging.debug(args)
