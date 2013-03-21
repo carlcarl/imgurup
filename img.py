@@ -99,7 +99,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
             sys.exit(1)
         elif album_id is None:  # Means the image not belong to any album
             albums = get_albums()
-            print('Select the number of the album you want to upload: ')
+            print('Enter the number of the album you want to upload: ')
             data_map = []
             i = 1
             for d in albums:
