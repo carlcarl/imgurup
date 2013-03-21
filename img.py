@@ -45,8 +45,16 @@ def list_albums(account='me', access_token=None):
     """
     List albums of the account
     """
+    # env = detect_env()
+    # if env == Env.CLI:
     for data in get_albums(account, access_token):
         print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
+    # elif env == Env.KDE:
+    #     msg = ''
+    #     for data in get_albums(account, access_token):
+    #         msg = '{msg}id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}\n'.format(msg=msg, d=data)
+    #     logging.debug(msg)
+    #     os.system('kdialog --msgbox "{msg}"'.format(msg=msg))
 
 
 def get_albums(account='me', access_token=None):
@@ -235,7 +243,7 @@ def main():
     p.add_parser('auth', help='Authorization tokens')
     p.add_parser('update', help='Update tokens')
     list_parser = p.add_parser('list', help='List all albums')
-    list_parser.add_argument('-u', nargs='?', const=None, default=False,
+    list_parser.add_argument('-u', nargs='?', const=None, default=None,
                              metavar='username')
     upload_parser = p.add_parser('upload', help='Upload image')
     upload_parser.add_argument('-d', nargs='?',
@@ -257,7 +265,10 @@ def main():
         update_token()
     elif args.command == 'list':
         logging.debug('list albums')
-        list_albums(args.u)
+        if args.u is None:
+            list_albums()
+        else:
+            list_albums(args.u)
     elif args.command == 'upload':
         logging.debug('upload image')
         upload_image(args.f, args.n, args.d)
