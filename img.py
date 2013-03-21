@@ -7,6 +7,7 @@ import sys
 from ConfigParser import SafeConfigParser
 import json
 import logging
+import os
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
@@ -87,6 +88,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     url = 'https://api.imgur.com/3/image'
     data = {}
     headers = {}
+    # TODO: If image_path is None, then do something
     if anonymous:
         print('Upload the image anonymously...')
         headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
@@ -213,6 +215,18 @@ def write_token(result, config='imgur.conf'):
     parser.set('Token', 'refresh_token', result['refresh_token'])
     with open(config, 'wb') as f:
         parser.write(f)
+
+
+class Env:
+    CLI = 0
+    KDE = 1
+
+
+def detect_env():
+    if os.environ.get('KDE_FULL_SESSION') == 'true':
+        return Env.KDE
+    else:
+        return Env.CLI
 
 
 def main():
