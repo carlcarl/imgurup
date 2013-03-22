@@ -8,6 +8,7 @@ from ConfigParser import SafeConfigParser
 import json
 import logging
 import os
+import subprocess
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
@@ -85,7 +86,7 @@ def get_albums(account='me', access_token=None):
         return result['data']
 
 
-def upload_image(image_path=None, anonymous=True, album_id=None):
+def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
     """
     Upload a image
     Args:
@@ -96,7 +97,14 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     url = 'https://api.imgur.com/3/image'
     data = {}
     headers = {}
-    # TODO: If image_path is None, then do something
+    if image_path is None:
+        if gui is True and detect_env == Env.KDE:
+            p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            image_path = p1.communicate()[0].strip()
+            if image_path == '':  # Cancel dialog
+                sys.exit(1)
+        else:
+            image_path = input('Enter your image location: ')
     if anonymous:
         print('Upload the image anonymously...')
         headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
@@ -135,6 +143,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     if check_success(result) is False:
         sys.exit(1)
     else:
+        # TODO: Implement GUI
         print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
         print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
@@ -255,6 +264,8 @@ def main():
     upload_parser.add_argument('-f', required=True,
                                help='The image you want to upload',
                                metavar='<IMAGE_PATH>')
+    upload_parser.add_argument('-g', action='store_true',
+                               help='GUI mode')
     args = parser.parse_args()
 
     if args.command == 'auth':
@@ -271,7 +282,7 @@ def main():
             list_albums(args.u)
     elif args.command == 'upload':
         logging.debug('upload image')
-        upload_image(args.f, args.n, args.d)
+        upload_image(args.f, args.n, args.d, args.g)
     else:
         logging.error('Unknown commands')
         logging.debug(args)
