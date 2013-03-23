@@ -97,8 +97,9 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
     url = 'https://api.imgur.com/3/image'
     data = {}
     headers = {}
+    env = detect_env()
     if image_path is None:
-        if gui is True and detect_env == Env.KDE:
+        if gui is True and env == Env.KDE:
             p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             image_path = p1.communicate()[0].strip()
             if image_path == '':  # Cancel dialog
@@ -117,15 +118,31 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
             sys.exit(1)
         elif album_id is None:  # Means the image not belong to any album
             albums = get_albums()
-            print('Enter the number of the album you want to upload: ')
-            data_map = []
             i = 1
-            for d in albums:
-                print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
-                data_map.append(d)
-                i += 1
-            print('{i}) Do not upload to any album'.format(i=i))
-            n = int(input())
+            data_map = []
+            if gui is True and env == Env.KDE:
+                arg = ['kdialog', '--menu', '"Choose the album"']
+                for d in albums:
+                    arg.append(str(i))
+                    arg.append('{d[title]}({d[privacy]})'.format(d=d))
+                    data_map.append(d)
+                    i += 1
+                arg.append(str(i))
+                arg.append('Do not upload to any album')
+                p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                n = p1.communicate()[0].strip()
+                if n == '':
+                    sys.exit(1)
+                n = int(n)
+            else:
+                print('Enter the number of the album you want to upload: ')
+                for d in albums:
+                    print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
+                    data_map.append(d)
+                    i += 1
+                print('{i}) Do not upload to any album'.format(i=i))
+                n = int(input())
+
             if n != i:
                 data['album_id'] = data_map[n - 1]['id']
                 print('Upload the image to the album...')
@@ -143,9 +160,14 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
     if check_success(result) is False:
         sys.exit(1)
     else:
-        # TODO: Implement GUI
-        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
-        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+        if gui is True and env == Env.KDE:
+            s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+            s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+            p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p1.communicate()[0].strip()
+        else:
+            print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
+            print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
 
 def update_token(refresh_token=None):
@@ -261,7 +283,7 @@ def main():
                                metavar='<ALBUM_ID>')
     upload_parser.add_argument('-n', action='store_true',
                                help='Anonymous')
-    upload_parser.add_argument('-f', required=True,
+    upload_parser.add_argument('-f',
                                help='The image you want to upload',
                                metavar='<IMAGE_PATH>')
     upload_parser.add_argument('-g', action='store_true',
