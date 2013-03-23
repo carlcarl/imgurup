@@ -13,6 +13,7 @@ import subprocess
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
+is_gui = False
 
 
 def read_tokens(config='imgur.conf'):
@@ -80,13 +81,18 @@ def get_albums(account='me', access_token=None):
     result = json.loads(result)
     if check_success(result) is False:
         if result['data']['error'] == 'Unauthorized':
-            print('You may have to update your tokens with `update` subcommand')
-        sys.exit(1)
-    else:
-        return result['data']
+            update_token()
+            result = requests.get(url, headers=headers, verify=False).text
+            result = json.loads(result)
+            if check_success(result) is False:
+                sys.exit(1)
+        else:
+            sys.exit(1)
+
+    return result['data']
 
 
-def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
+def upload_image(image_path=None, anonymous=True, album_id=None):
     """
     Upload a image
     Args:
@@ -99,7 +105,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
     headers = {}
     env = detect_env()
     if image_path is None:
-        if gui is True and env == Env.KDE:
+        if env == Env.KDE:
             p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             image_path = p1.communicate()[0].strip()
             if image_path == '':  # Cancel dialog
@@ -120,7 +126,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
             albums = get_albums()
             i = 1
             data_map = []
-            if gui is True and env == Env.KDE:
+            if env == Env.KDE:
                 arg = ['kdialog', '--menu', '"Choose the album"']
                 for d in albums:
                     arg.append(str(i))
@@ -155,19 +161,24 @@ def upload_image(image_path=None, anonymous=True, album_id=None, gui=False):
         headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
         files = {'image': open(image_path, 'rb')}
 
-    result = requests.post(url, headers=headers, data=data, files=files, verify=False).text
-    result = json.loads(result)
+    result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
     if check_success(result) is False:
-        sys.exit(1)
-    else:
-        if gui is True and env == Env.KDE:
-            s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-            s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
-            p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p1.communicate()[0].strip()
+        if result['data']['error'] == 'Unauthorized':
+            update_token()
+            result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
+            if check_success(result) is False:
+                sys.exit(1)
         else:
-            print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
-            print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+            sys.exit(1)
+
+    if env == Env.KDE:
+        s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+        s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+        p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.communicate()[0].strip()
+    else:
+        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
+        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
 
 def update_token(refresh_token=None):
@@ -262,7 +273,8 @@ class Env:
 
 
 def detect_env():
-    if os.environ.get('KDE_FULL_SESSION') == 'true':
+    global is_gui
+    if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
         return Env.KDE
     else:
         return Env.CLI
@@ -304,7 +316,10 @@ def main():
             list_albums(args.u)
     elif args.command == 'upload':
         logging.debug('upload image')
-        upload_image(args.f, args.n, args.d, args.g)
+        if args.g is True:
+            global is_gui
+            is_gui = True
+        upload_image(args.f, args.n, args.d)
     else:
         logging.error('Unknown commands')
         logging.debug(args)
