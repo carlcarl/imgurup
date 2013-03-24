@@ -16,6 +16,19 @@ CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 is_gui = False
 
 
+class Env:
+    CLI = 0
+    KDE = 1
+
+
+def detect_env():
+    global is_gui
+    if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
+        return Env.KDE
+    else:
+        return Env.CLI
+
+
 def read_tokens(config='imgur.conf'):
     """
     Read the token valuse from the config file
@@ -47,16 +60,8 @@ def list_albums(account='me', access_token=None):
     """
     List albums of the account
     """
-    # env = detect_env()
-    # if env == Env.CLI:
     for data in get_albums(account, access_token):
         print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
-    # elif env == Env.KDE:
-    #     msg = ''
-    #     for data in get_albums(account, access_token):
-    #         msg = '{msg}id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}\n'.format(msg=msg, d=data)
-    #     logging.debug(msg)
-    #     os.system('kdialog --msgbox "{msg}"'.format(msg=msg))
 
 
 def get_albums(account='me', access_token=None):
@@ -92,95 +97,6 @@ def get_albums(account='me', access_token=None):
     return result['data']
 
 
-def upload_image(image_path=None, anonymous=True, album_id=None):
-    """
-    Upload a image
-    Args:
-        image_path: the path of the image you want to upload
-        anonymous: True or False
-        album_id: the id of the album
-    """
-    url = 'https://api.imgur.com/3/image'
-    data = {}
-    headers = {}
-    env = detect_env()
-    if image_path is None:
-        if env == Env.KDE:
-            p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            image_path = p1.communicate()[0].strip()
-            if image_path == '':  # Cancel dialog
-                sys.exit(1)
-        else:
-            image_path = input('Enter your image location: ')
-    if anonymous:
-        print('Upload the image anonymously...')
-        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
-        files = {'image': open(image_path, 'rb')}
-    else:
-        tokens = read_tokens()
-        access_token = tokens['access_token']
-        if access_token is None:
-            logging.error('Access token should not be empty')
-            sys.exit(1)
-        elif album_id is None:  # Means the image not belong to any album
-            albums = get_albums()
-            i = 1
-            data_map = []
-            if env == Env.KDE:
-                arg = ['kdialog', '--menu', '"Choose the album"']
-                for d in albums:
-                    arg.append(str(i))
-                    arg.append('{d[title]}({d[privacy]})'.format(d=d))
-                    data_map.append(d)
-                    i += 1
-                arg.append(str(i))
-                arg.append('Do not upload to any album')
-                p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                n = p1.communicate()[0].strip()
-                if n == '':
-                    sys.exit(1)
-                n = int(n)
-            else:
-                print('Enter the number of the album you want to upload: ')
-                for d in albums:
-                    print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
-                    data_map.append(d)
-                    i += 1
-                print('{i}) Do not upload to any album'.format(i=i))
-                n = int(input())
-
-            if n != i:
-                data['album_id'] = data_map[n - 1]['id']
-                print('Upload the image to the album...')
-            else:
-                print('Upload the image...')
-        else:
-            print('Upload the image to the album...')
-            data['album_id'] = album_id
-
-        headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
-        files = {'image': open(image_path, 'rb')}
-
-    result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
-    if check_success(result) is False:
-        if result['data']['error'] == 'Unauthorized':
-            update_token()
-            result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
-            if check_success(result) is False:
-                sys.exit(1)
-        else:
-            sys.exit(1)
-
-    if env == Env.KDE:
-        s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-        s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
-        p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p1.communicate()[0].strip()
-    else:
-        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
-        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
-
-
 def update_token(refresh_token=None):
     """
     Update the access token and refresh token
@@ -214,12 +130,24 @@ def auth():
     Authorization
     """
     auth_url = 'https://api.imgur.com/oauth2/authorize?\
-client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
-    print ('Visit this URL in your browser: ' + auth_url)
-    pin = raw_input('Enter PIN code from displayed in the browser: ')
+    client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
+    auth_msg = 'Visit this URL in your browser: ' + auth_url
 
-    url = 'https://api.imgur.com/oauth2/token'
-    result = requests.post(url,
+    token_msg = 'Enter PIN code from displayed in the browser: '
+    token_url = 'https://api.imgur.com/oauth2/token'
+
+    env = detect_env()
+    if env == Env.KDE:
+        p1 = subprocess.Popen(['kdialog', '--msgbox', auth_msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.communicate()[0].strip()
+
+        p1 = subprocess.Popen(['kdialog', '--title', 'Input dialog', '--inputbox', token_msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        pin = p1.communicate()[0].strip()
+    else:
+        print(auth_msg)
+        pin = raw_input(token_msg)
+
+    result = requests.post(token_url,
                            data={'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET,
                                  'grant_type': 'pin', 'pin': pin},
                            verify=False).text
@@ -267,17 +195,101 @@ def write_token(result, config='imgur.conf'):
         parser.write(f)
 
 
-class Env:
-    CLI = 0
-    KDE = 1
-
-
-def detect_env():
-    global is_gui
-    if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
-        return Env.KDE
+def upload_image(image_path=None, anonymous=True, album_id=None):
+    """
+    Upload a image
+    Args:
+        image_path: the path of the image you want to upload
+        anonymous: True or False
+        album_id: the id of the album
+    """
+    url = 'https://api.imgur.com/3/image'
+    data = {}
+    headers = {}
+    env = detect_env()
+    if image_path is None:
+        if env == Env.KDE:
+            p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            image_path = p1.communicate()[0].strip()
+            if image_path == '':  # Cancel dialog
+                sys.exit(1)
+        else:
+            image_path = input('Enter your image location: ')
+    if anonymous:  # Anonymous account
+        print('Upload the image anonymously...')
+        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
+        files = {'image': open(image_path, 'rb')}
     else:
-        return Env.CLI
+        tokens = read_tokens()
+        if tokens['access_token'] is None or tokens['refresh_token'] is None:
+            # If the tokens are empty, means this is the first time using this
+            # tool, so call auth() to get tokens
+            auth()
+            tokens = read_tokens()
+            if tokens['access_token'] is None or tokens['refresh_token'] is None:
+                logging.error('Tokens should not be empty')
+                sys.exit(1)
+
+        access_token = tokens['access_token']
+        if album_id is None:  # Means user doesn't specify the album
+            albums = get_albums()
+            i = 1
+            data_map = []
+            no_album_msg = 'Do not upload to any album'
+
+            if env == Env.KDE:
+                arg = ['kdialog', '--menu', '"Choose the album"']
+                for d in albums:
+                    arg.append(str(i))
+                    arg.append('{d[title]}({d[privacy]})'.format(d=d))
+                    data_map.append(d)
+                    i += 1
+                arg.append(str(i))
+                arg.append(no_album_msg)
+                p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                n = p1.communicate()[0].strip()
+                if n == '':
+                    sys.exit(1)
+                n = int(n)
+            else:
+                print('Enter the number of the album you want to upload: ')
+                for d in albums:
+                    print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
+                    data_map.append(d)
+                    i += 1
+                print('{i}) {no_album_msg}'.format(i=i, no_album_msg=no_album_msg))
+                n = int(input())
+
+            if n != i:  # If the user doesn't choose 'Not belong to any album'
+                data['album_id'] = data_map[n - 1]['id']  # number select start from 1, so minus 1
+                print('Upload the image to the album...')
+            else:
+                print('Upload the image...')
+        else:
+            print('Upload the image to the album...')
+            data['album_id'] = album_id
+
+        headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
+        files = {'image': open(image_path, 'rb')}
+
+    result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
+    if check_success(result) is False:
+        if result['data']['error'] == 'Unauthorized':
+            update_token()
+            result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
+            if check_success(result) is False:
+                sys.exit(1)
+        else:
+            sys.exit(1)
+
+    if env == Env.KDE:
+        s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+        s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+        p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.communicate()[0].strip()
+    else:
+        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
+        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
 
 def main():
