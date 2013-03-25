@@ -14,6 +14,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 is_gui = False
+access_token = None
+refresh_token = None
 
 
 class Env:
@@ -34,12 +36,11 @@ def read_tokens(config='imgur.conf'):
     Read the token valuse from the config file
     Args:
         config: the name of the config
-    Returns:
-        A tuple which contains access_token and refresh_token
     """
     parser = SafeConfigParser()
     parser.read(config)
 
+    global access_token, refresh_token
     try:
         access_token = parser.get('Token', 'access_token')
     except:
@@ -52,58 +53,46 @@ def read_tokens(config='imgur.conf'):
         logging.warning('Can\'t find refresh token, set to empty')
         refresh_token = None
 
-    return {'access_token': access_token,
-            'refresh_token': refresh_token}
 
-
-def list_albums(account='me', access_token=None):
+def list_albums(account='me'):
     """
     List albums of the account
     """
-    for data in get_albums(account, access_token):
+    for data in get_albums(account, access_token)['data']:
         print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
 
 
-def get_albums(account='me', access_token=None):
+def get_albums(account='me'):
     """
-    Return albums of the account
+    Return albums(json) of the account
     """
     url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
-    if access_token is None:
-        # If without assigning a value to access_token,
-        # then just read the value from config file
-        tokens = read_tokens()
-        access_token = tokens['access_token']
-    if access_token is None:
-        logging.warning('List albums without a access token')
+
+    global access_token
+    if account != 'me':
+        logging.info('Get album list without a access token')
         headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
     else:
-        logging.info('List albums  with access token')
+        if access_token is None:
+            # If without assigning a value to access_token,
+            # then just read the value from config file
+            read_tokens()
+        logging.info('Get album list with access token')
         logging.debug('Access token: {access_token}'.format(access_token=access_token))
         headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
 
     result = requests.get(url, headers=headers, verify=False).text
     result = json.loads(result)
-    if check_success(result) is False:
-        if result['data']['error'] == 'Unauthorized':
-            update_token()
-            result = requests.get(url, headers=headers, verify=False).text
-            result = json.loads(result)
-            if check_success(result) is False:
-                sys.exit(1)
-        else:
-            sys.exit(1)
-
-    return result['data']
+    return result
 
 
-def update_token(refresh_token=None):
+def update_token():
     """
     Update the access token and refresh token
-    Args:
-        refresh_token: the value of the refresh_token. If it's None, then read from the config again.
     """
     url = 'https://api.imgur.com/oauth2/token'
+
+    global access_token, refresh_token
     if refresh_token is None:
         # Without assigning a value to the refresh_token parameter,
         # read the value from config file(Defualt is imgur.conf)
@@ -122,6 +111,8 @@ def update_token(refresh_token=None):
         if check_success(result) is False:
             sys.exit(1)
         else:
+            access_token = result['access_token']
+            refresh_token = result['refresh_token']
             write_token(result)
 
 
@@ -131,9 +122,9 @@ def auth():
     """
     auth_url = 'https://api.imgur.com/oauth2/authorize?\
     client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
-    auth_msg = 'Visit this URL in your browser: ' + auth_url
+    auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
 
-    token_msg = 'Enter PIN code from displayed in the browser: '
+    token_msg = 'Enter PIN code displayed in the browser: '
     token_url = 'https://api.imgur.com/oauth2/token'
 
     env = detect_env()
@@ -155,6 +146,9 @@ def auth():
     if check_success(result) is False:
         sys.exit(1)
     else:
+        global access_token, refresh_token
+        access_token = result['access_token']
+        refresh_token = result['refresh_token']
         write_token(result)
 
 
@@ -220,19 +214,26 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
         files = {'image': open(image_path, 'rb')}
     else:
-        tokens = read_tokens()
-        if tokens['access_token'] is None or tokens['refresh_token'] is None:
+        read_tokens()
+        if access_token is None or refresh_token is None:
             # If the tokens are empty, means this is the first time using this
             # tool, so call auth() to get tokens
             auth()
-            tokens = read_tokens()
-            if tokens['access_token'] is None or tokens['refresh_token'] is None:
+            if access_token is None or refresh_token is None:
                 logging.error('Tokens should not be empty')
                 sys.exit(1)
 
-        access_token = tokens['access_token']
         if album_id is None:  # Means user doesn't specify the album
-            albums = get_albums()
+            albums_json = get_albums()
+            if check_success(albums_json) is False:
+                if albums_json['data']['error'] == 'Unauthorized':
+                    update_token()
+                    albums_json = get_albums()
+                    if check_success(albums_json) is False:
+                        sys.exit(1)
+                else:
+                    sys.exit(1)
+            albums = albums_json['data']
             i = 1
             data_map = []
             no_album_msg = 'Do not upload to any album'
@@ -262,11 +263,11 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
 
             if n != i:  # If the user doesn't choose 'Not belong to any album'
                 data['album_id'] = data_map[n - 1]['id']  # number select start from 1, so minus 1
-                print('Upload the image to the album...')
+                logging.info('Upload the image to the album...')
             else:
-                print('Upload the image...')
+                logging.info('Upload the image...')
         else:
-            print('Upload the image to the album...')
+            logging.info('Upload the image to the album...')
             data['album_id'] = album_id
 
         headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
@@ -294,48 +295,24 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
 
 def main():
     parser = argparse.ArgumentParser()
-    p = parser.add_subparsers(title='Commands available', dest='command')
-    p.add_parser('auth', help='Authorization tokens')
-    p.add_parser('update', help='Update tokens')
-    list_parser = p.add_parser('list', help='List all albums')
-    list_parser.add_argument('-u', nargs='?', const=None, default=None,
-                             metavar='username')
-    upload_parser = p.add_parser('upload', help='Upload image')
-    upload_parser.add_argument('-d', nargs='?',
-                               default=None,
-                               help='The album you want your image to be uploaded to',
-                               metavar='<ALBUM_ID>')
-    upload_parser.add_argument('-n', action='store_true',
-                               help='Anonymous')
-    upload_parser.add_argument('-f',
-                               help='The image you want to upload',
-                               metavar='<IMAGE_PATH>')
-    upload_parser.add_argument('-g', action='store_true',
-                               help='GUI mode')
+    parser.add_argument('-f',
+                        help='The image you want to upload',
+                        metavar='<IMAGE_PATH>')
+    parser.add_argument('-d', nargs='?',
+                        default=None,
+                        help='The album you want your image to be uploaded to',
+                        metavar='<ALBUM_ID>')
+    parser.add_argument('-g', action='store_true',
+                        help='GUI mode')
+    parser.add_argument('-n', action='store_true',
+                        help='Anonymous')
     args = parser.parse_args()
 
-    if args.command == 'auth':
-        logging.debug('auth token')
-        auth()
-    elif args.command == 'update':
-        logging.debug('update token')
-        update_token()
-    elif args.command == 'list':
-        logging.debug('list albums')
-        if args.u is None:
-            list_albums()
-        else:
-            list_albums(args.u)
-    elif args.command == 'upload':
-        logging.debug('upload image')
-        if args.g is True:
-            global is_gui
-            is_gui = True
-        upload_image(args.f, args.n, args.d)
-    else:
-        logging.error('Unknown commands')
-        logging.debug(args)
-        sys.exit(1)
+    if args.g is True:
+        global is_gui
+        is_gui = True
+
+    upload_image(args.f, args.n, args.d)
 
 
 if __name__ == '__main__':
