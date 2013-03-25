@@ -1,47 +1,16 @@
 # Upload to imgur using its API v3
-usage: img.py [-h] {auth,update,list,upload} ...
+This support CLI and KDE dialog upload
 
 ## Usage
-img.py [-h] {auth,update,list,upload}
+Usage: img.py [-h] [-f <IMAGE_PATH>] [-d [<ALBUM_ID>]] [-g] [-n]
+You can just type `./img.py` without any argument, the program will ask you for another infomation.
 
 optional arguments:
-  -h, --help            show this help message and exit
-
-Commands available: <br />
-  {auth,update,list,upload}
-
-* auth                (Authorization tokens)
-* update              (Update tokens)
-* list                (List all albums)
-* upload              (Upload image)
-
-## Commands Available:
-* auth
-
-	./img.py auth
-
-* update
-
-	./img.py update
-
-* list
-
-	./img.py list` 
-
-	or 
-
-	`./img.py list -u username
-
-* upload
-
-	// Upload anonymously
-	./img.py upload -f ./test.jpg
-
-	// Upload to your account
-	./img.py upload -f ./test.jpg -d
-
-	// And specify the album id 
-	./img.py upload -f ./test.jpg -d AB123
+  -h, --help       show this help message and exit
+  -f <IMAGE_PATH>  The image you want to upload
+  -d [<ALBUM_ID>]  The album you want your image to be uploaded to
+  -g               GUI mode
+  -n               Anonymous
 
 ## Packcage Dependency
 * requests
