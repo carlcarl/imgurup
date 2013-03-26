@@ -13,5 +13,5 @@ optional arguments:
   -n               Anonymous
 
 ## Packcage Dependency
-* requests
+* None
 
