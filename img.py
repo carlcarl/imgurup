@@ -2,7 +2,11 @@
 # coding: utf-8
 
 import argparse
-import requests
+import httplib
+import urllib
+import random
+import string
+import mimetypes
 import sys
 from ConfigParser import SafeConfigParser
 import json
@@ -16,6 +20,7 @@ CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
 is_gui = False
 access_token = None
 refresh_token = None
+connect = None
 
 
 class Env:
@@ -66,7 +71,7 @@ def get_albums(account='me'):
     """
     Return albums(json) of the account
     """
-    url = 'https://api.imgur.com/3/account/{account}/albums'.format(account=account)
+    url = '/3/account/{account}/albums'.format(account=account)
 
     global access_token
     if account != 'me':
@@ -81,7 +86,8 @@ def get_albums(account='me'):
         logging.debug('Access token: {access_token}'.format(access_token=access_token))
         headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
 
-    result = requests.get(url, headers=headers, verify=False).text
+    connect.request('GET', url, None, headers)
+    result = connect.getresponse().read()
     result = json.loads(result)
     return result
 
@@ -90,23 +96,24 @@ def update_token():
     """
     Update the access token and refresh token
     """
-    url = 'https://api.imgur.com/oauth2/token'
+    url = '/oauth2/token'
 
     global access_token, refresh_token
     if refresh_token is None:
         # Without assigning a value to the refresh_token parameter,
         # read the value from config file(Defualt is imgur.conf)
-        tokens = read_tokens()
-        refresh_token = tokens['refresh_token']
+        read_tokens()
     if refresh_token is None:
         logging.error('Refresh token should not be empty')
         # TODO: Maybe use auth() again
         sys.exit(1)
     else:
-        result = requests.post(url,
-                               data={'refresh_token': refresh_token, 'client_id': CLIENT_ID,
-                                     'client_secret': CLIENT_SECRET, 'grant_type': 'refresh_token'},
-                               verify=False).text
+        global connect
+        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        params = urllib.urlencode({'refresh_token': refresh_token, 'client_id': CLIENT_ID,
+                                   'client_secret': CLIENT_SECRET, 'grant_type': 'refresh_token'})
+        connect.request('POST', url, params, headers)
+        result = connect.getresponse().read()
         result = json.loads(result)
         if check_success(result) is False:
             sys.exit(1)
@@ -125,7 +132,7 @@ def auth():
     auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
 
     token_msg = 'Enter PIN code displayed in the browser: '
-    token_url = 'https://api.imgur.com/oauth2/token'
+    token_url = '/oauth2/token'
 
     env = detect_env()
     if env == Env.KDE:
@@ -138,11 +145,9 @@ def auth():
         print(auth_msg)
         pin = raw_input(token_msg)
 
-    result = requests.post(token_url,
-                           data={'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET,
-                                 'grant_type': 'pin', 'pin': pin},
-                           verify=False).text
-    result = json.loads(result)
+    connect.request('POST', token_url, urllib.urlencode({'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET,
+                                                         'grant_type': 'pin', 'pin': pin}))
+    result = json.loads(connect.getresponse().read())
     if check_success(result) is False:
         sys.exit(1)
     else:
@@ -189,6 +194,48 @@ def write_token(result, config='imgur.conf'):
         parser.write(f)
 
 
+def random_string(length):
+    """
+    From http://stackoverflow.com/questions/68477
+    """
+    return ''.join(random.choice(string.letters) for ii in range(length + 1))
+
+
+def encode_multipart_data(data, files):
+    """
+    From http://stackoverflow.com/questions/68477
+    """
+    boundary = random_string(30)
+
+    def get_content_type(filename):
+        return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+    def encode_field(field_name):
+        return ('--' + boundary,
+                'Content-Disposition: form-data; name="%s"' % field_name,
+                '', str(data[field_name]))
+
+    def encode_file(field_name):
+        filename = files[field_name]
+        return ('--' + boundary,
+                'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
+                'Content-Type: %s' % get_content_type(filename),
+                '', open(filename, 'rb').read())
+
+    lines = []
+    for name in data:
+        lines.extend(encode_field(name))
+    for name in files:
+        lines.extend(encode_file(name))
+    lines.extend(('--%s--' % boundary, ''))
+    body = '\r\n'.join(lines)
+
+    headers = {'content-type': 'multipart/form-data; boundary=' + boundary,
+               'content-length': str(len(body))}
+
+    return body, headers
+
+
 def upload_image(image_path=None, anonymous=True, album_id=None):
     """
     Upload a image
@@ -197,7 +244,9 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         anonymous: True or False
         album_id: the id of the album
     """
-    url = 'https://api.imgur.com/3/image'
+    url = '/3/image'
+    global connect
+    connect = httplib.HTTPSConnection('api.imgur.com')
     data = {}
     headers = {}
     env = detect_env()
@@ -211,8 +260,9 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
             image_path = input('Enter your image location: ')
     if anonymous:  # Anonymous account
         print('Upload the image anonymously...')
-        headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=CLIENT_ID)}
-        files = {'image': open(image_path, 'rb')}
+        files = {'image': image_path}
+        body, headers = encode_multipart_data(data, files)
+        headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=CLIENT_ID)
     else:
         read_tokens()
         if access_token is None or refresh_token is None:
@@ -270,14 +320,17 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
             logging.info('Upload the image to the album...')
             data['album_id'] = album_id
 
-        headers = {'Authorization': 'Bearer {access_token}'.format(access_token=access_token)}
-        files = {'image': open(image_path, 'rb')}
+        files = {'image': image_path}
+        body, headers = encode_multipart_data(data, files)
+        headers['Authorization'] = 'Bearer {access_token}'.format(access_token=access_token)
 
-    result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
+    connect.request('POST', url, body, headers)
+    result = json.loads(connect.getresponse().read())
     if check_success(result) is False:
         if result['data']['error'] == 'Unauthorized':
             update_token()
-            result = json.loads(requests.post(url, headers=headers, data=data, files=files, verify=False).text)
+            connect.request('POST', url, body, headers)
+            result = json.loads(connect.getresponse().read())
             if check_success(result) is False:
                 sys.exit(1)
         else:
