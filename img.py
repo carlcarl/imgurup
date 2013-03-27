@@ -37,11 +37,11 @@ def detect_env():
 
 
 def read_tokens(config='imgur.conf'):
-    """
+    '''
     Read the token valuse from the config file
     Args:
         config: the name of the config
-    """
+    '''
     parser = SafeConfigParser()
     parser.read(config)
 
@@ -60,17 +60,17 @@ def read_tokens(config='imgur.conf'):
 
 
 def list_albums(account='me'):
-    """
+    '''
     List albums of the account
-    """
+    '''
     for data in get_albums(account, access_token)['data']:
         print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
 
 
 def get_albums(account='me'):
-    """
+    '''
     Return albums(json) of the account
-    """
+    '''
     url = '/3/account/{account}/albums'.format(account=account)
 
     global access_token
@@ -93,9 +93,9 @@ def get_albums(account='me'):
 
 
 def update_token():
-    """
+    '''
     Update the access token and refresh token
-    """
+    '''
     url = '/oauth2/token'
 
     global access_token, refresh_token
@@ -124,9 +124,9 @@ def update_token():
 
 
 def auth():
-    """
+    '''
     Authorization
-    """
+    '''
     auth_url = 'https://api.imgur.com/oauth2/authorize?\
     client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_ID)
     auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
@@ -158,13 +158,13 @@ def auth():
 
 
 def check_success(result):
-    """
+    '''
     Check the value of the result is success or not
     Args:
         result: the result return from the server
     Returns:
         True if success, else False
-    """
+    '''
     if ('success' in result) and (result['success'] is False):
         logging.error(result['data']['error'])
         logging.debug(json.dumps(result))
@@ -173,14 +173,14 @@ def check_success(result):
 
 
 def write_token(result, config='imgur.conf'):
-    """
+    '''
     Write token value to the config
     There will be maybe more setting needed to be written to config
     So I just pass `result`
     Args:
         result: the result return from the server
         config: the name of the config file
-    """
+    '''
     logging.info('Access token: %s', result['access_token'])
     logging.info('Refresh token: %s', result['refresh_token'])
 
@@ -195,16 +195,16 @@ def write_token(result, config='imgur.conf'):
 
 
 def random_string(length):
-    """
+    '''
     From http://stackoverflow.com/questions/68477
-    """
+    '''
     return ''.join(random.choice(string.letters) for ii in range(length + 1))
 
 
 def encode_multipart_data(data, files):
-    """
+    '''
     From http://stackoverflow.com/questions/68477
-    """
+    '''
     boundary = random_string(30)
 
     def get_content_type(filename):
@@ -237,13 +237,13 @@ def encode_multipart_data(data, files):
 
 
 def upload_image(image_path=None, anonymous=True, album_id=None):
-    """
+    '''
     Upload a image
     Args:
         image_path: the path of the image you want to upload
         anonymous: True or False
         album_id: the id of the album
-    """
+    '''
     url = '/3/image'
     global connect
     connect = httplib.HTTPSConnection('api.imgur.com')
