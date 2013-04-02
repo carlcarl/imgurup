@@ -17,10 +17,8 @@ import subprocess
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 CLIENT_ID = '55080e3fd8d0644'
 CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
-is_gui = False
 access_token = None
 refresh_token = None
-connect = None
 
 
 class Env:
@@ -28,12 +26,20 @@ class Env:
     KDE = 1
 
 
-def detect_env():
-    global is_gui
+def detect_env(is_gui):
     if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
         return Env.KDE
     else:
         return Env.CLI
+
+
+def fatal_error(env, msg='Error'):
+    if env == Env.KDE:
+        p1 = subprocess.Popen(['kdialog', '--error', msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.communicate()[0].strip()
+    else:
+        logging.error(msg)
+    sys.exit(1)
 
 
 def read_tokens(config='imgur.conf'):
@@ -59,15 +65,7 @@ def read_tokens(config='imgur.conf'):
         refresh_token = None
 
 
-def list_albums(account='me'):
-    '''
-    List albums of the account
-    '''
-    for data in get_albums(account, access_token)['data']:
-        print('id: {d[id]}, title: {d[title]}, privacy: {d[privacy]}'.format(d=data))
-
-
-def get_albums(account='me'):
+def get_albums(connect, account='me'):
     '''
     Return albums(json) of the account
     '''
@@ -92,7 +90,7 @@ def get_albums(account='me'):
     return result
 
 
-def update_token():
+def update_token(connect, env):
     '''
     Update the access token and refresh token
     '''
@@ -108,7 +106,6 @@ def update_token():
         # TODO: Maybe use auth() again
         sys.exit(1)
     else:
-        global connect
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         params = urllib.urlencode({'refresh_token': refresh_token, 'client_id': CLIENT_ID,
                                    'client_secret': CLIENT_SECRET, 'grant_type': 'refresh_token'})
@@ -116,14 +113,14 @@ def update_token():
         result = connect.getresponse().read()
         result = json.loads(result)
         if check_success(result) is False:
-            sys.exit(1)
+            fatal_error(env, 'Update token error')
         else:
             access_token = result['access_token']
             refresh_token = result['refresh_token']
             write_token(result)
 
 
-def auth():
+def auth(connect, env):
     '''
     Authorization
     '''
@@ -134,7 +131,6 @@ def auth():
     token_msg = 'Enter PIN code displayed in the browser: '
     token_url = '/oauth2/token'
 
-    env = detect_env()
     if env == Env.KDE:
         p1 = subprocess.Popen(['kdialog', '--msgbox', auth_msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p1.communicate()[0].strip()
@@ -149,7 +145,7 @@ def auth():
                                                          'grant_type': 'pin', 'pin': pin}))
     result = json.loads(connect.getresponse().read())
     if check_success(result) is False:
-        sys.exit(1)
+        fatal_error(env, 'Authorization error')
     else:
         global access_token, refresh_token
         access_token = result['access_token']
@@ -236,7 +232,7 @@ def encode_multipart_data(data, files):
     return body, headers
 
 
-def upload_image(image_path=None, anonymous=True, album_id=None):
+def upload_image(image_path=None, anonymous=True, album_id=None, is_gui=False):
     '''
     Upload a image
     Args:
@@ -245,11 +241,10 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         album_id: the id of the album
     '''
     url = '/3/image'
-    global connect
     connect = httplib.HTTPSConnection('api.imgur.com')
     data = {}
     headers = {}
-    env = detect_env()
+    env = detect_env(is_gui)
     if image_path is None:
         if env == Env.KDE:
             p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -268,21 +263,19 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
         if access_token is None or refresh_token is None:
             # If the tokens are empty, means this is the first time using this
             # tool, so call auth() to get tokens
-            auth()
+            auth(connect, env)
             if access_token is None or refresh_token is None:
-                logging.error('Tokens should not be empty')
-                sys.exit(1)
-
+                fatal_error(env, 'Tokens should not be empty')
         if album_id is None:  # Means user doesn't specify the album
-            albums_json = get_albums()
+            albums_json = get_albums(connect)
             if check_success(albums_json) is False:
                 if albums_json['data']['error'] == 'Unauthorized':
-                    update_token()
-                    albums_json = get_albums()
+                    update_token(connect, env)
+                    albums_json = get_albums(connect)
                     if check_success(albums_json) is False:
-                        sys.exit(1)
+                        fatal_error(env, 'Get albums error(auth)')
                 else:
-                    sys.exit(1)
+                    fatal_error(env, 'Get albums unknown error')
             albums = albums_json['data']
             i = 1
             data_map = []
@@ -328,14 +321,13 @@ def upload_image(image_path=None, anonymous=True, album_id=None):
     result = json.loads(connect.getresponse().read())
     if check_success(result) is False:
         if result['data']['error'] == 'Unauthorized':
-            update_token()
+            update_token(connect, env)
             connect.request('POST', url, body, headers)
             result = json.loads(connect.getresponse().read())
             if check_success(result) is False:
-                sys.exit(1)
+                fatal_error(env, 'Upload image error(auth)')
         else:
-            sys.exit(1)
-
+            fatal_error(env, 'Upload image error')
     if env == Env.KDE:
         s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
         s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
@@ -361,11 +353,7 @@ def main():
                         help='Anonymous')
     args = parser.parse_args()
 
-    if args.g is True:
-        global is_gui
-        is_gui = True
-
-    upload_image(args.f, args.n, args.d)
+    upload_image(args.f, args.n, args.d, args.g)
 
 
 if __name__ == '__main__':
