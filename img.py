@@ -342,15 +342,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f',
                         help='The image you want to upload',
-                        metavar='<IMAGE_PATH>')
+                        metavar='<image path>')
     parser.add_argument('-d', nargs='?',
                         default=None,
-                        help='The album you want your image to be uploaded to',
-                        metavar='<ALBUM_ID>')
+                        help='The album id you want your image to be uploaded to',
+                        metavar='<album id>')
     parser.add_argument('-g', action='store_true',
                         help='GUI mode')
     parser.add_argument('-n', action='store_true',
-                        help='Anonymous')
+                        help='Anonymous upload')
     args = parser.parse_args()
 
     upload_image(args.f, args.n, args.d, args.g)
