@@ -25,11 +25,12 @@ class Env:
     CLI = 0
     KDE = 1
 
-    def detect_env(self, is_gui):
+    @staticmethod
+    def detect_env(is_gui):
         if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
-            return self.KDE
+            return Env.KDE
         else:
-            return self.CLI
+            return Env.CLI
 
 
 def fatal_error(env, msg='Error'):
@@ -140,8 +141,9 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=CLIENT_
         print(auth_msg)
         pin = raw_input(token_msg)
 
+    headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     connect.request('POST', token_url, urllib.urlencode({'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET,
-                                                         'grant_type': 'pin', 'pin': pin}))
+                                                         'grant_type': 'pin', 'pin': pin}), headers)
     result = json.loads(connect.getresponse().read())
     if check_success(result) is False:
         fatal_error(env, 'Authorization error')
