@@ -25,12 +25,11 @@ class Env:
     CLI = 0
     KDE = 1
 
-
-def detect_env(is_gui):
-    if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
-        return Env.KDE
-    else:
-        return Env.CLI
+    def detect_env(self, is_gui):
+        if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
+            return self.KDE
+        else:
+            return self.CLI
 
 
 def fatal_error(env, msg='Error'):
@@ -244,7 +243,7 @@ def upload_image(image_path=None, anonymous=True, album_id=None, is_gui=False):
     connect = httplib.HTTPSConnection('api.imgur.com')
     data = {}
     headers = {}
-    env = detect_env(is_gui)
+    env = Env.detect_env(is_gui)
     if image_path is None:
         if env == Env.KDE:
             p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
