@@ -76,10 +76,7 @@ class Imgur(object):
         '''
         url = '/3/account/{account}/albums'.format(account=account)
 
-        if account != 'me':
-            logging.info('Get album list without a access token')
-            headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=self.CLIENT_ID)}
-        else:
+        if account == 'me':
             if self.access_token is None:
                 # If without assigning a value to access_token,
                 # then just read the value from config file
@@ -87,6 +84,9 @@ class Imgur(object):
             logging.info('Get album list with access token')
             logging.debug('Access token: {access_token}'.format(access_token=self.access_token))
             headers = {'Authorization': 'Bearer {access_token}'.format(access_token=self.access_token)}
+        else:
+            logging.info('Get album list without a access token')
+            headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=self.CLIENT_ID)}
 
         self.connect.request('GET', url, None, headers)
         result = self.connect.getresponse().read()
@@ -107,19 +107,19 @@ class Imgur(object):
             logging.error('Refresh token should not be empty')
             # TODO: Maybe use auth() again
             sys.exit(1)
+
+        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.CLIENT_ID,
+                                   'client_secret': self.CLIENT_SECRET, 'grant_type': 'refresh_token'})
+        self.connect.request('POST', url, params, headers)
+        result = self.connect.getresponse().read()
+        result = json.loads(result)
+        if self.check_success(result) is False:
+            self.fatal_error('Update token error')
         else:
-            headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-            params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.CLIENT_ID,
-                                       'client_secret': self.CLIENT_SECRET, 'grant_type': 'refresh_token'})
-            self.connect.request('POST', url, params, headers)
-            result = self.connect.getresponse().read()
-            result = json.loads(result)
-            if self.check_success(result) is False:
-                self.fatal_error('Update token error')
-            else:
-                self.access_token = result['access_token']
-                self.refresh_token = result['refresh_token']
-                self.write_token(result)
+            self.access_token = result['access_token']
+            self.refresh_token = result['refresh_token']
+            self.write_token(result)
 
     def auth(self):
         '''
@@ -146,12 +146,12 @@ class Imgur(object):
         self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.CLIENT_ID, 'client_secret': self.CLIENT_SECRET,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
         result = json.loads(self.connect.getresponse().read())
-        if self.check_success(result) is False:
-            self.fatal_error('Authorization error')
-        else:
+        if self.check_success(result) is True:
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
             self.write_token(result)
+        else:
+            self.fatal_error('Authorization error')
 
     def check_success(self, result):
         '''
