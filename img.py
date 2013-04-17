@@ -49,14 +49,14 @@ class Imgur(object):
             logging.error(msg)
         sys.exit(1)
 
-    def read_tokens(self, config=CONFIG_PATH):
+    def read_tokens(self):
         '''
         Read the token valuse from the config file
         Args:
             config: the name of the config
         '''
         parser = SafeConfigParser()
-        parser.read(config)
+        parser.read(self.CONFIG_PATH)
 
         try:
             self.access_token = parser.get('Token', 'access_token')
@@ -167,7 +167,7 @@ class Imgur(object):
             return False
         return True
 
-    def write_token(self, result, config=CONFIG_PATH):
+    def write_token(self, result):
         '''
         Write token value to the config
         There will be maybe more setting needed to be written to config
@@ -180,12 +180,12 @@ class Imgur(object):
         logging.info('Refresh token: %s', result['refresh_token'])
 
         parser = SafeConfigParser()
-        parser.read(config)
+        parser.read(self.CONFIG_PATH)
         if not parser.has_section('Token'):
             parser.add_section('Token')
         parser.set('Token', 'access_token', result['access_token'])
         parser.set('Token', 'refresh_token', result['refresh_token'])
-        with open(config, 'wb') as f:
+        with open(self.CONFIG_PATH, 'wb') as f:
             parser.write(f)
 
     def random_string(self, length):
