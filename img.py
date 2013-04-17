@@ -32,6 +32,7 @@ class Env:
 class Imgur(object):
     CLIENT_ID = '55080e3fd8d0644'
     CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
+    CONFIG_PATH = os.path.dirname(os.path.realpath(__file__)) + '/imgur.conf'
     connect = None
     access_token = None
     refresh_token = None
@@ -48,7 +49,7 @@ class Imgur(object):
             logging.error(msg)
         sys.exit(1)
 
-    def read_tokens(self, config='imgur.conf'):
+    def read_tokens(self, config=CONFIG_PATH):
         '''
         Read the token valuse from the config file
         Args:
@@ -166,7 +167,7 @@ class Imgur(object):
             return False
         return True
 
-    def write_token(self, result, config='imgur.conf'):
+    def write_token(self, result, config=CONFIG_PATH):
         '''
         Write token value to the config
         There will be maybe more setting needed to be written to config
