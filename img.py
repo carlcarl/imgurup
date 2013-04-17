@@ -105,7 +105,6 @@ class Imgur(object):
             self.read_tokens()
         if self.refresh_token is None:
             logging.error('Refresh token should not be empty')
-            # TODO: Maybe use auth() again
             sys.exit(1)
 
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
@@ -114,12 +113,12 @@ class Imgur(object):
         self.connect.request('POST', url, params, headers)
         result = self.connect.getresponse().read()
         result = json.loads(result)
-        if self.check_success(result) is False:
-            self.fatal_error('Update token error')
-        else:
+        if self.check_success(result) is True:
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
             self.write_token(result)
+        else:
+            self.fatal_error('Update token error')
 
     def auth(self):
         '''
