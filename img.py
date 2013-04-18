@@ -52,6 +52,7 @@ class Imgur(object):
     def set_tokens_using_config(self):
         '''
         Read the token valuse from the config file
+        Set tokens to None if can't be found in config
         '''
         parser = SafeConfigParser()
         parser.read(self.CONFIG_PATH)
@@ -70,7 +71,9 @@ class Imgur(object):
 
     def get_album_list(self, account='me'):
         '''
-        Return albums(json) of the account
+        Return albums list of the account
+        Returns:
+            albums(json)
         '''
         url = '/3/account/{account}/albums'.format(account=account)
 
@@ -97,12 +100,9 @@ class Imgur(object):
         url = '/oauth2/token'
 
         if self.refresh_token is None:
-            # Without assigning a value to the refresh_token parameter,
-            # read the value from config file(Defualt is imgur.conf)
             self.set_tokens_using_config()
         if self.refresh_token is None:
-            logging.error('Refresh token should not be empty')
-            sys.exit(1)
+            self.fatal_error('Can\'t read the value of refresh_token, you may have to authorize again')
 
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.CLIENT_ID,
@@ -113,7 +113,7 @@ class Imgur(object):
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
         else:
-            self.fatal_error('Update token error')
+            self.fatal_error('Update tokens fail')
 
     def ask_pin_code(self):
         '''
@@ -259,7 +259,7 @@ class Imgur(object):
         albums = albums_json['data']
         i = 1
         data_map = []
-        no_album_msg = 'Do not upload to any album'
+        no_album_msg = 'Do not move to any album'
         album_id = None
 
         if self.env == Env.KDE:
