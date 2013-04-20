@@ -1,2 +1,5 @@
 imgur.conf
 .*/
+build
+dist
+imgur_upload.egg-info
