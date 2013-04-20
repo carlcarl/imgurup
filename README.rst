@@ -1,14 +1,20 @@
-# Upload to imgur using API(v3)
+imgur-upload
+============
+Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload
 
 
-## Feature
+Feature
+-------
+Support upload images(anonymously) or with your account.
 Support CLI and KDE dialog upload
 
-## Installation
-
+Installation
+------------
+::
 	python setup.py install
 
-## Usage
+Usage
+-----
 img [-h] [-f &lt;image path&gt;] [-d [&lt;album id&gt;]] [-g] [-n]
 
 You can just type `img` without any argument, the program will ask you for another infomation.
@@ -21,9 +27,11 @@ Optional arguments:
 *  -g               GUI mode
 *  -n               Anonymous upload
 
-## Packcage Dependency
+Packcage Dependency
+-------------------
 * None
 
-## Todo
-Support MacOS
+Todo
+----
+* Support MacOS
 

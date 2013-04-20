@@ -2,13 +2,13 @@ from setuptools import setup
 
 setup(
     name='imgur-upload',
-    description='',
+    description='Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload',
     long_description=open('README.md').read(),
     version='0.0.1',
     author='carlcarl',
     author_email='carlcarlking@gmail.com',
     url='https://github.com/carlcarl/imgur-upload',
-    packages=[''],
+    packages=[],
     license='MIT',
     entry_points={
         'console_scripts': [
