@@ -10,22 +10,25 @@ Support CLI and KDE dialog upload
 
 Installation
 ------------
+Just type:
 ::
 	python setup.py install
 
 Usage
 -----
-img [-h] [-f &lt;image path&gt;] [-d [&lt;album id&gt;]] [-g] [-n]
+``img [-h] [-f <image path>] [-d [<album id>]] [-g] [-n]``
 
-You can just type `img` without any argument, the program will ask you for another infomation.
-But add `-f` argument with your image file would be easier to use, ex: `img -f xx.jpg`
+You can just type ``img`` without any argument, the program will ask you for another infomation.
+
+But add ``-f`` argument with your image file would be easier to use, ex: ``img -f xx.jpg``
 
 Optional arguments:
-*  -h, --help       show this help message and exit
-*  -f &lt;image path&gt;  The image you want to upload
-*  -d [&lt;album id&gt;]  The album id you want your image to be uploaded to
-*  -g               GUI mode
-*  -n               Anonymous upload
+::
+	-h, --help       show this help message and exit
+	-f <image path>  The image you want to upload
+	-d [<album id>]  The album id you want your image to be uploaded to
+	-g               GUI mode
+	-n               Anonymous upload
 
 Packcage Dependency
 -------------------
