@@ -4,7 +4,7 @@ setup(
     name='imgur-upload',
     description='Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload',
     long_description=open('README.rst').read(),
-    version='0.0.2',
+    version='0.0.4',
     author='carlcarl',
     author_email='carlcarlking@gmail.com',
     url='https://github.com/carlcarl/imgur-upload',

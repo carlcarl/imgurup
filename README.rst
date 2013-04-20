@@ -10,8 +10,8 @@ Support CLI and KDE dialog upload
 
 Installation
 ------------
-Just type:
 ::
+
 	python setup.py install
 
 Usage
@@ -24,6 +24,7 @@ But add ``-f`` argument with your image file would be easier to use, ex: ``img -
 
 Optional arguments:
 ::
+
 	-h, --help       show this help message and exit
 	-f <image path>  The image you want to upload
 	-d [<album id>]  The album id you want your image to be uploaded to
