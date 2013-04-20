@@ -36,5 +36,5 @@ Packcage Dependency
 
 Todo
 ----
-* Support MacOS
+* Support MacOS GUI dialog
 
