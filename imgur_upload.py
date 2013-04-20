@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 import argparse
 import httplib
@@ -122,7 +122,7 @@ class Imgur(object):
             pin code
         '''
         auth_url = 'https://api.imgur.com/oauth2/authorize?\
-    client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CLIENT_ID)
+client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CLIENT_ID)
         auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 

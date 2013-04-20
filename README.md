@@ -1,13 +1,18 @@
-# Upload to imgur using its API v3
+# Upload to imgur using API(v3)
 
 
 ## Feature
-This support CLI and KDE dialog upload
+Support CLI and KDE dialog upload
+
+## Installation
+
+	python setup.py install
 
 ## Usage
-img.py [-h] [-f &lt;image path&gt;] [-d [&lt;album id&gt;]] [-g] [-n]
+img [-h] [-f &lt;image path&gt;] [-d [&lt;album id&gt;]] [-g] [-n]
 
-You can just type `./img.py` without any argument, the program will ask you for another infomation.
+You can just type `img` without any argument, the program will ask you for another infomation.
+But add `-f` argument with your image file would be easier to use, ex: `img -f xx.jpg`
 
 Optional arguments:
 *  -h, --help       show this help message and exit
@@ -18,4 +23,7 @@ Optional arguments:
 
 ## Packcage Dependency
 * None
+
+## Todo
+Support MacOS
 
