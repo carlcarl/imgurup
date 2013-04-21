@@ -1,4 +1,4 @@
-imgur-upload
+imgur_upload
 ============
 Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload
 
@@ -13,6 +13,12 @@ Installation
 ::
 
 	python setup.py install
+
+or 
+
+::
+
+    sudo pip install imgur-upload
 
 Usage
 -----

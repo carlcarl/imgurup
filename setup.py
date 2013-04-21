@@ -1,14 +1,15 @@
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
-    name='imgur-upload',
+    name='imgur_upload',
     description='Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload',
     long_description=open('README.rst').read(),
-    version='0.0.5',
+    version='0.0.6',
     author='carlcarl',
     author_email='carlcarlking@gmail.com',
-    url='https://github.com/carlcarl/imgur-upload',
-    packages=[],
+    url='https://github.com/carlcarl/imgur_upload',
+    packages=find_packages(),
     license='MIT',
     entry_points={
         'console_scripts': [
