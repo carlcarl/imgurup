@@ -1,4 +1,4 @@
-imgur_upload
+imgurup
 ============
 Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload
 
@@ -18,7 +18,7 @@ or
 
 ::
 
-    sudo pip install imgur-upload
+    sudo pip install imgurup
 
 Usage
 -----
