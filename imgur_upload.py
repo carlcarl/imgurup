@@ -30,16 +30,22 @@ class Env:
 
 
 class Imgur(object):
-    CLIENT_ID = '55080e3fd8d0644'
-    CLIENT_SECRET = 'd021464e1b3244d6f73749b94d17916cf361da24'
     CONFIG_PATH = os.path.dirname(os.path.realpath(__file__)) + '/imgur.conf'
+    client_id = None
+    client_secret = None
     connect = None
     access_token = None
     refresh_token = None
     env = Env.CLI
 
-    def __init__(self):
-        pass
+    def __init__(self, client_id, client_secret):
+        '''
+        Initialize connection, client_id and client_secret
+        Users can use their own client_id to make requests
+        '''
+        self.connect = httplib.HTTPSConnection('api.imgur.com')
+        self.client_id = client_id
+        self.client_secret = client_secret
 
     def fatal_error(self, msg='Error'):
         if self.env == Env.KDE:
@@ -87,7 +93,7 @@ class Imgur(object):
             headers = {'Authorization': 'Bearer {access_token}'.format(access_token=self.access_token)}
         else:
             logging.info('Get album list without a access token')
-            headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=self.CLIENT_ID)}
+            headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=self.client_id)}
 
         self.connect.request('GET', url, None, headers)
         result = json.loads(self.connect.getresponse().read())
@@ -105,8 +111,8 @@ class Imgur(object):
             self.fatal_error('Can\'t read the value of refresh_token, you may have to authorize again')
 
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.CLIENT_ID,
-                                   'client_secret': self.CLIENT_SECRET, 'grant_type': 'refresh_token'})
+        params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.client_id,
+                                   'client_secret': self.client_secret, 'grant_type': 'refresh_token'})
         self.connect.request('POST', url, params, headers)
         result = json.loads(self.connect.getresponse().read())
         if self.check_success(result) is True:
@@ -122,7 +128,7 @@ class Imgur(object):
             pin code
         '''
         auth_url = 'https://api.imgur.com/oauth2/authorize?\
-client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CLIENT_ID)
+client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.client_id)
         auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 
@@ -146,7 +152,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CL
 
         pin = self.ask_pin_code()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.CLIENT_ID, 'client_secret': self.CLIENT_SECRET,
+        self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
         result = json.loads(self.connect.getresponse().read())
         if (self.check_success(result) is True) and (result['access_token'] is not None) and (result['refresh_token'] is not None):
@@ -316,7 +322,6 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CL
             album_id: the id of the album
         '''
         url = '/3/image'
-        self.connect = httplib.HTTPSConnection('api.imgur.com')
         data = {}
         headers = {}
         self.env = Env.detect_env(is_gui)
@@ -326,7 +331,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.CL
             print('Upload the image anonymously...')
             files = {'image': image_path}
             body, headers = self.encode_multipart_data(data, files)
-            headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self.CLIENT_ID)
+            headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self.client_id)
         else:
             self.set_tokens_using_config()
             if self.access_token is None or self.refresh_token is None:
@@ -378,7 +383,7 @@ def main():
                         help='Anonymous upload')
     args = parser.parse_args()
 
-    imgur = Imgur()
+    imgur = Imgur(client_id='55080e3fd8d0644', client_secret='d021464e1b3244d6f73749b94d17916cf361da24')
     imgur.upload_image(args.f, args.n, args.d, args.g)
 
 
