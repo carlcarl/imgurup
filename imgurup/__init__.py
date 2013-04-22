@@ -30,7 +30,7 @@ class Env:
 
 
 class Imgur(object):
-    CONFIG_PATH = os.path.dirname(os.path.realpath(__file__)) + '/imgur.conf'
+    CONFIG_PATH = os.path.expanduser("~/.imgurup.conf")
     client_id = None
     client_secret = None
     connect = None
@@ -170,7 +170,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             True if success, else False
         '''
         if ('success' in result) and (result['success'] is False):
-            logging.error(result['data']['error'])
+            logging.info(result['data']['error'])
             logging.debug(json.dumps(result))
             return False
         return True
