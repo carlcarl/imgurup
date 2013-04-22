@@ -255,6 +255,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         albums_json = self.get_album_list()
         if self.check_success(albums_json) is False:
             if albums_json['data']['error'] == 'Unauthorized':
+                logging.info('Reauthorize...')
                 self.update_tokens()
                 self.write_tokens_to_config()
                 albums_json = self.get_album_list()
@@ -357,6 +358,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         result = json.loads(self.connect.getresponse().read())
         if self.check_success(result) is False:
             if result['data']['error'] == 'Unauthorized':
+                logging.info('Reauthorize...')
                 self.update_tokens()
                 self.write_tokens_to_config()
                 self.connect.request('POST', url, body, headers)
