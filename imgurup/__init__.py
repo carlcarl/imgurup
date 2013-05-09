@@ -20,11 +20,14 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 class Env:
     CLI = 0
     KDE = 1
+    MAC = 2
 
     @staticmethod
     def detect_env(is_gui):
         if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
             return Env.KDE
+        elif is_gui is True and sys.platform == 'darwin':
+            return Env.MAC
         else:
             return Env.CLI
 
@@ -48,8 +51,27 @@ class Imgur(object):
         self.client_secret = client_secret
 
     def fatal_error(self, msg='Error'):
-        if self.env == Env.KDE:
-            p1 = subprocess.Popen(['kdialog', '--error', msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if self.env != Env.CLI:
+            if self.env == Env.KDE:
+                p1 = subprocess.Popen(
+                    [
+                        'kdialog',
+                        '--error',
+                        msg
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            elif self.env == Env.MAC:
+                p1 = subprocess.Popen(
+                    [
+                        'osascript',
+                        '-e',
+                        'tell app "Finder" to display alert "{msg}" as warning'.format(msg=msg)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
             p1.communicate()[0].strip()
         else:
             logging.error(msg)
@@ -129,14 +151,57 @@ class Imgur(object):
         '''
         auth_url = 'https://api.imgur.com/oauth2/authorize?\
 client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.client_id)
-        auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: ' + auth_url
+        _auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: '
+        auth_msg = _auth_msg + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 
-        if self.env == Env.KDE:
-            p1 = subprocess.Popen(['kdialog', '--msgbox', auth_msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p1.communicate()[0].strip()
+        if self.env != Env.CLI:
+            if self.env == Env.KDE:
+                p1 = subprocess.Popen(
+                    [
+                        'kdialog',
+                        '--msgbox',
+                        auth_msg
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            elif self.env == Env.MAC:
+                p1 = subprocess.Popen(
+                    [
+                        'osascript',
+                        '-e',
+                        'tell app "SystemUIServer" to display dialog "{msg}" default answer "{link}" with icon 1'.format(msg=_auth_msg, link=auth_url)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                p1.communicate()[0].strip()
 
-            p1 = subprocess.Popen(['kdialog', '--title', 'Input dialog', '--inputbox', token_msg], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if self.env == Env.KDE:
+                p1 = subprocess.Popen(
+                    [
+                        'kdialog',
+                        '--title',
+                        'Input dialog',
+                        '--inputbox',
+                        token_msg
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            elif self.env == Env.MAC:
+                p1 = subprocess.Popen(
+                    [
+                        'osascript',
+                        '-e',
+                        'tell app "SystemUIServer" to display dialog "{msg}" default answer "" with icon 1'.format(msg=token_msg),
+                        '-e',
+                        'text returned of result'
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
             pin = p1.communicate()[0].strip()
         else:
             print(auth_msg)
@@ -151,6 +216,8 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         token_url = '/oauth2/token'
 
         pin = self.ask_pin_code()
+        print(pin)
+        sys.exit()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
@@ -237,8 +304,27 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         return body, headers
 
     def ask_image_path(self):
-        if self.env == Env.KDE:
-            p1 = subprocess.Popen(['kdialog', '--getopenfilename', '.'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if self.env != Env.CLI:
+            if self.env == Env.KDE:
+                p1 = subprocess.Popen(
+                    [
+                        'kdialog',
+                        '--getopenfilename',
+                        '.'
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            elif self.env == Env.MAC:
+                p1 = subprocess.Popen(
+                    [
+                        'osascript',
+                        '-e',
+                        'tell app "Finder" to POSIX path of (choose file with prompt "Choose Image:")'
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
             image_path = p1.communicate()[0].strip()
             if image_path == '':  # Cancel dialog
                 sys.exit(1)
@@ -254,7 +340,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         '''
         albums_json = self.get_album_list()
         if self.check_success(albums_json) is False:
-            if albums_json['data']['error'] == 'Unauthorized':
+            if albums_json['data']['error'] == 'The access token provided has expired.':
                 logging.info('Reauthorize...')
                 self.update_tokens()
                 self.write_tokens_to_config()
@@ -281,7 +367,24 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             n = p1.communicate()[0].strip()
             if n == '':
-                sys.exit(1)
+                self.fatal_error('n should not be empty')
+            n = int(n)
+        elif self.env == Env.MAC:
+            l = ''
+            for d in albums:
+                l = l + '"{i} {d[title]}({d[privacy]})",'.format(i=i, d=d)
+                data_map.append(d)
+                i += 1
+            arg = [
+                'osascript',
+                '-e',
+                'tell app "Finder" to choose from list {{{l}}} with title "Choose From The List" with prompt "PickOne" OK button name "Select" cancel button name "Quit"'.format(l=l[:-1])
+            ]
+            p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            n = p1.communicate()[0].strip()
+            n = n[:n.find(' ')]
+            if n == '':
+                self.fatal_error('n should not be empty')
             n = int(n)
         else:
             print('Enter the number of the album you want to upload: ')
@@ -357,7 +460,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         self.connect.request('POST', url, body, headers)
         result = json.loads(self.connect.getresponse().read())
         if self.check_success(result) is False:
-            if result['data']['error'] == 'Unauthorized':
+            if result['data']['error'] == 'The access token provided has expired.':
                 logging.info('Reauthorize...')
                 self.update_tokens()
                 self.write_tokens_to_config()
