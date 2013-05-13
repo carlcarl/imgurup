@@ -24,9 +24,9 @@ class Env:
 
     @staticmethod
     def detect_env(is_gui):
-        if is_gui is True and os.environ.get('KDE_FULL_SESSION') == 'true':
+        if is_gui and os.environ.get('KDE_FULL_SESSION') == 'true':
             return Env.KDE
-        elif is_gui is True and sys.platform == 'darwin':
+        elif is_gui and sys.platform == 'darwin':
             return Env.MAC
         else:
             return Env.CLI
@@ -41,16 +41,16 @@ class Imgur(object):
     refresh_token = None
     env = Env.CLI
 
-    def __init__(self, client_id, client_secret):
+    def __init__(self, url='api.imgur.com', client_id='55080e3fd8d0644', client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
         '''
         Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
         '''
-        self.connect = httplib.HTTPSConnection('api.imgur.com')
+        self.connect = httplib.HTTPSConnection(url)
         self.client_id = client_id
         self.client_secret = client_secret
 
-    def fatal_error(self, msg='Error'):
+    def show_error_and_exit(self, msg='Error'):
         if self.env != Env.CLI:
             if self.env == Env.KDE:
                 show_error_dialog = subprocess.Popen(
@@ -73,8 +73,7 @@ class Imgur(object):
                     stderr=subprocess.PIPE
                 )
             show_error_dialog.communicate()
-        else:
-            logging.error(msg)
+        logging.error(msg)
         sys.exit(1)
 
     def set_tokens_using_config(self):
@@ -97,11 +96,11 @@ class Imgur(object):
             logging.warning('Can\'t find refresh token, set to empty')
             self.refresh_token = None
 
-    def get_album_list(self, account='me'):
+    def request_album_list(self, account='me'):
         '''
         Return albums list of the account
         Returns:
-            albums(json)
+            albums (dict type with json)
         '''
         url = '/3/account/{account}/albums'.format(account=account)
 
@@ -121,27 +120,41 @@ class Imgur(object):
         result = json.loads(self.connect.getresponse().read())
         return result
 
-    def update_tokens(self):
+    def request_new_tokens(self):
         '''
-        Update the access token and refresh token
+        Request new tokens
+        Returns:
+            tokens (dict type with json)
         '''
         url = '/oauth2/token'
+        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        params = urllib.urlencode(
+            {
+                'refresh_token': self.refresh_token,
+                'client_id': self.client_id,
+                'client_secret': self.client_secret,
+                'grant_type': 'refresh_token'
+            }
+        )
+        self.connect.request('POST', url, params, headers)
+        return json.loads(self.connect.getresponse().read())
+
+    def request_new_tokens_and_update(self):
+        '''
+        Request and update the access token and refresh token
+        '''
 
         if self.refresh_token is None:
             self.set_tokens_using_config()
         if self.refresh_token is None:
-            self.fatal_error('Can\'t read the value of refresh_token, you may have to authorize again')
+            self.show_error_and_exit('Can\'t read the value of refresh_token, you may have to authorize again')
 
-        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        params = urllib.urlencode({'refresh_token': self.refresh_token, 'client_id': self.client_id,
-                                   'client_secret': self.client_secret, 'grant_type': 'refresh_token'})
-        self.connect.request('POST', url, params, headers)
-        result = json.loads(self.connect.getresponse().read())
-        if self.check_success(result) is True:
+        result = self.request_new_tokens()
+        if self.check_success(result):
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
         else:
-            self.fatal_error('Update tokens fail')
+            self.show_error_and_exit('Update tokens fail')
 
     def ask_pin_code(self):
         '''
@@ -216,17 +229,15 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         token_url = '/oauth2/token'
 
         pin = self.ask_pin_code()
-        print(pin)
-        sys.exit()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
         result = json.loads(self.connect.getresponse().read())
-        if (self.check_success(result) is True) and (result['access_token'] is not None) and (result['refresh_token'] is not None):
+        if (self.check_success(result)):
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
         else:
-            self.fatal_error('Authorization error')
+            self.show_error_and_exit('Authorization error')
 
     def check_success(self, result):
         '''
@@ -236,7 +247,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         Returns:
             True if success, else False
         '''
-        if ('success' in result) and (result['success'] is False):
+        if ('success' in result) and (not result['success']):
             logging.info(result['data']['error'])
             logging.debug(json.dumps(result))
             return False
@@ -338,17 +349,17 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         Returns:
             album_id: the id of the album
         '''
-        albums_json = self.get_album_list()
-        if self.check_success(albums_json) is False:
+        albums_json = self.request_album_list()
+        if not self.check_success(albums_json):
             if albums_json['data']['error'] == 'The access token provided has expired.':
                 logging.info('Reauthorize...')
-                self.update_tokens()
+                self.request_new_tokens_and_update()
                 self.write_tokens_to_config()
-                albums_json = self.get_album_list()
-                if self.check_success(albums_json) is False:
-                    self.fatal_error('Get albums error(auth)')
+                albums_json = self.request_album_list()
+                if not self.check_success(albums_json):
+                    self.show_error_and_exit('Get albums error(auth)')
             else:
-                self.fatal_error('Get albums unknown error')
+                self.show_error_and_exit('Get albums unknown error')
         albums = albums_json['data']
         i = 1
         data_map = []
@@ -367,7 +378,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             n = choose_album_dialog.communicate()[0].strip()
             if n == '':
-                self.fatal_error('n should not be empty')
+                self.show_error_and_exit('n should not be empty')
             n = int(n)
         elif self.env == Env.MAC:
             l = ''
@@ -384,7 +395,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             n = choose_album_dialog.communicate()[0].strip()
             n = n[:n.find(' ')]
             if n == '':
-                self.fatal_error('n should not be empty')
+                self.show_error_and_exit('n should not be empty')
             n = int(n)
         else:
             print('Enter the number of the album you want to upload: ')
@@ -430,7 +441,6 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             )
             response = show_link_dialog.communicate()[0].strip()
             response = response[response.rfind(':') + 1:]
-            print(response)
             if response == 'Show delete link':
                 delete_link = 'http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
                 show_delete_link_dialog = subprocess.Popen(
@@ -489,17 +499,17 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
         self.connect.request('POST', url, body, headers)
         result = json.loads(self.connect.getresponse().read())
-        if self.check_success(result) is False:
+        if not self.check_success(result):
             if result['data']['error'] == 'The access token provided has expired.':
                 logging.info('Reauthorize...')
-                self.update_tokens()
+                self.request_new_tokens_and_update()
                 self.write_tokens_to_config()
                 self.connect.request('POST', url, body, headers)
                 result = json.loads(self.connect.getresponse().read())
-                if self.check_success(result) is False:
-                    self.fatal_error('Upload image error(auth)')
+                if not self.check_success(result):
+                    self.show_error_and_exit('Upload image error(auth)')
             else:
-                self.fatal_error('Upload image error')
+                self.show_error_and_exit('Upload image error')
         self.show_link(result)
 
 
@@ -518,7 +528,7 @@ def main():
                         help='Anonymous upload')
     args = parser.parse_args()
 
-    imgur = Imgur(client_id='55080e3fd8d0644', client_secret='d021464e1b3244d6f73749b94d17916cf361da24')
+    imgur = Imgur()
     imgur.upload_image(args.f, args.n, args.d, args.g)
 
 
