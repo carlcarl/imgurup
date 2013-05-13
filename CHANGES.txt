@@ -1,3 +1,7 @@
+0.1.0
+-----
+* Implement Mac dialog
+
 0.0.2
 -----
 * Change default config location to ~/.imgurup.conf

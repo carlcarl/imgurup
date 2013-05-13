@@ -1,6 +1,6 @@
 imgurup
 ============
-Upload to imgur using API(v3). Support authorization, CLI and KDE dialog upload
+Upload to imgur using API(v3). Support authorization, CLI, KDE and Mac dialog upload
 
 
 Feature
@@ -43,5 +43,5 @@ Packcage Dependency
 
 Todo
 ----
-* Support MacOS GUI dialog
+* Nothing for now
 
