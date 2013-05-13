@@ -53,7 +53,7 @@ class Imgur(object):
     def fatal_error(self, msg='Error'):
         if self.env != Env.CLI:
             if self.env == Env.KDE:
-                p1 = subprocess.Popen(
+                show_error_dialog = subprocess.Popen(
                     [
                         'kdialog',
                         '--error',
@@ -63,7 +63,7 @@ class Imgur(object):
                     stderr=subprocess.PIPE
                 )
             elif self.env == Env.MAC:
-                p1 = subprocess.Popen(
+                show_error_dialog = subprocess.Popen(
                     [
                         'osascript',
                         '-e',
@@ -72,7 +72,7 @@ class Imgur(object):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
-            p1.communicate()[0].strip()
+            show_error_dialog.communicate()
         else:
             logging.error(msg)
         sys.exit(1)
@@ -157,7 +157,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
         if self.env != Env.CLI:
             if self.env == Env.KDE:
-                p1 = subprocess.Popen(
+                auth_msg_dialog = subprocess.Popen(
                     [
                         'kdialog',
                         '--msgbox',
@@ -167,7 +167,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stderr=subprocess.PIPE
                 )
             elif self.env == Env.MAC:
-                p1 = subprocess.Popen(
+                auth_msg_dialog = subprocess.Popen(
                     [
                         'osascript',
                         '-e',
@@ -176,10 +176,10 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
-                p1.communicate()[0].strip()
+            auth_msg_dialog.communicate()
 
             if self.env == Env.KDE:
-                p1 = subprocess.Popen(
+                ask_pin_dialog = subprocess.Popen(
                     [
                         'kdialog',
                         '--title',
@@ -191,7 +191,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stderr=subprocess.PIPE
                 )
             elif self.env == Env.MAC:
-                p1 = subprocess.Popen(
+                ask_pin_dialog = subprocess.Popen(
                     [
                         'osascript',
                         '-e',
@@ -202,7 +202,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
-            pin = p1.communicate()[0].strip()
+            pin = ask_pin_dialog.communicate()[0].strip()
         else:
             print(auth_msg)
             pin = raw_input(token_msg)
@@ -306,7 +306,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
     def ask_image_path(self):
         if self.env != Env.CLI:
             if self.env == Env.KDE:
-                p1 = subprocess.Popen(
+                ask_image_path_dialog = subprocess.Popen(
                     [
                         'kdialog',
                         '--getopenfilename',
@@ -316,7 +316,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stderr=subprocess.PIPE
                 )
             elif self.env == Env.MAC:
-                p1 = subprocess.Popen(
+                ask_image_path_dialog = subprocess.Popen(
                     [
                         'osascript',
                         '-e',
@@ -325,7 +325,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
-            image_path = p1.communicate()[0].strip()
+            image_path = ask_image_path_dialog.communicate()[0].strip()
             if image_path == '':  # Cancel dialog
                 sys.exit(1)
         else:
@@ -364,8 +364,8 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                 i += 1
             arg.append(str(i))
             arg.append(no_album_msg)
-            p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            n = p1.communicate()[0].strip()
+            choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            n = choose_album_dialog.communicate()[0].strip()
             if n == '':
                 self.fatal_error('n should not be empty')
             n = int(n)
@@ -380,8 +380,8 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                 '-e',
                 'tell app "Finder" to choose from list {{{l}}} with title "Choose From The List" with prompt "PickOne" OK button name "Select" cancel button name "Quit"'.format(l=l[:-1])
             ]
-            p1 = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            n = p1.communicate()[0].strip()
+            choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            n = choose_album_dialog.communicate()[0].strip()
             n = n[:n.find(' ')]
             if n == '':
                 self.fatal_error('n should not be empty')
@@ -409,13 +409,43 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             result: image upload response(json)
         '''
         if self.env == Env.KDE:
-            s = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-            s = s + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
-            p1 = subprocess.Popen(['kdialog', '--msgbox', s], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p1.communicate()[0].strip()
-        else:
-            print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
-            print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+            links = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+            links = links + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+            show_link_dialog = subprocess.Popen(
+                ['kdialog', '--msgbox', links],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            show_link_dialog.communicate()
+        elif self.env == Env.MAC:
+            link = result['data']['link'].replace('\\', '')
+            show_link_dialog = subprocess.Popen(
+                [
+                    'osascript',
+                    '-e',
+                    'tell app "Finder" to display dialog "Image Link" default answer "{link}" buttons {{"Show delete link", "OK"}} default button 2'.format(link=link)
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            response = show_link_dialog.communicate()[0].strip()
+            response = response[response.rfind(':') + 1:]
+            print(response)
+            if response == 'Show delete link':
+                delete_link = 'http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+                show_delete_link_dialog = subprocess.Popen(
+                    [
+                        'osascript',
+                        '-e',
+                        'tell app "Finder" to display dialog "Delete link" default answer "{link}"'.format(link=delete_link)
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                show_delete_link_dialog.communicate()
+
+        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
+        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
 
     def upload_image(self, image_path=None, anonymous=True, album_id=None, is_gui=False):
         '''
