@@ -149,14 +149,37 @@ class Imgur(object):
         if self.refresh_token is None:
             self.show_error_and_exit('Can\'t read the value of refresh_token, you may have to authorize again')
 
-        result = self.request_new_tokens()
-        if self.check_success(result):
-            self.access_token = result['access_token']
-            self.refresh_token = result['refresh_token']
+        response = self.request_new_tokens()
+        if self.check_success(response):
+            self.access_token = response['access_token']
+            self.refresh_token = response['refresh_token']
         else:
             self.show_error_and_exit('Update tokens fail')
 
-    def ask_pin_code(self):
+    def show_auth_msg_dialog(self, auth_msg, auth_url):
+        if self.env == Env.KDE:
+            auth_msg_dialog = subprocess.Popen(
+                [
+                    'kdialog',
+                    '--msgbox',
+                    auth_msg
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        elif self.env == Env.MAC:
+            auth_msg_dialog = subprocess.Popen(
+                [
+                    'osascript',
+                    '-e',
+                    'tell app "SystemUIServer" to display dialog "{msg}" default answer "{link}" with icon 1'.format(msg=auth_msg, link=auth_url)
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+        auth_msg_dialog.communicate()
+
+    def ask_pin(self):
         '''
         Ask user for pin code
         Returns:
@@ -164,32 +187,12 @@ class Imgur(object):
         '''
         auth_url = 'https://api.imgur.com/oauth2/authorize?\
 client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.client_id)
-        _auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: '
-        auth_msg = _auth_msg + auth_url
+        gui_auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: \n'
+        cli_auth_msg = gui_auth_msg + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 
         if self.env != Env.CLI:
-            if self.env == Env.KDE:
-                auth_msg_dialog = subprocess.Popen(
-                    [
-                        'kdialog',
-                        '--msgbox',
-                        auth_msg
-                    ],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-            elif self.env == Env.MAC:
-                auth_msg_dialog = subprocess.Popen(
-                    [
-                        'osascript',
-                        '-e',
-                        'tell app "SystemUIServer" to display dialog "{msg}" default answer "{link}" with icon 1'.format(msg=_auth_msg, link=auth_url)
-                    ],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-            auth_msg_dialog.communicate()
+            self.show_auth_msg_dialog(gui_auth_msg, auth_url)
 
             if self.env == Env.KDE:
                 ask_pin_dialog = subprocess.Popen(
@@ -217,7 +220,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                 )
             pin = ask_pin_dialog.communicate()[0].strip()
         else:
-            print(auth_msg)
+            print(cli_auth_msg)
             pin = raw_input(token_msg)
 
         return pin
@@ -228,7 +231,7 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         '''
         token_url = '/oauth2/token'
 
-        pin = self.ask_pin_code()
+        pin = self.ask_pin()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
