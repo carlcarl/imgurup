@@ -1,4 +1,11 @@
+0.1.2
+-----
+* Fix auth error 
+* Remove some debug messages
+* Add a new line in auth message
+
 0.1.1
+-----
 * Update description in doc
 
 0.1.0

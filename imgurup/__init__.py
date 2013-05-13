@@ -151,7 +151,7 @@ class Imgur(object):
         '''
         auth_url = 'https://api.imgur.com/oauth2/authorize?\
 client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.client_id)
-        _auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: '
+        _auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: \n'
         auth_msg = _auth_msg + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 
@@ -216,8 +216,6 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
         token_url = '/oauth2/token'
 
         pin = self.ask_pin_code()
-        print(pin)
-        sys.exit()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
                                                                   'grant_type': 'pin', 'pin': pin}), headers)
@@ -430,7 +428,6 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             )
             response = show_link_dialog.communicate()[0].strip()
             response = response[response.rfind(':') + 1:]
-            print(response)
             if response == 'Show delete link':
                 delete_link = 'http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
                 show_delete_link_dialog = subprocess.Popen(
