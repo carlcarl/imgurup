@@ -3,9 +3,9 @@ from setuptools import find_packages
 
 setup(
     name='imgurup',
-    description='Upload to imgur using API(v3). Support account, CLI and KDE dialog upload',
+    description='Upload to imgur using API(v3). Support CLI, KDE and Mac dialog upload. And you can also use your account to upload :).',
     long_description=open('README.rst').read(),
-    version='0.1.0',
+    version='0.1.1',
     author='carlcarl',
     author_email='carlcarlking@gmail.com',
     url='https://github.com/carlcarl/imgurup',
