@@ -41,7 +41,9 @@ class Imgur(object):
     refresh_token = None
     env = Env.CLI
 
-    def __init__(self, url='api.imgur.com', client_id='55080e3fd8d0644', client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
+    def __init__(self, url='api.imgur.com',
+                 client_id='55080e3fd8d0644',
+                 client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
         '''
         Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
@@ -67,7 +69,10 @@ class Imgur(object):
                     [
                         'osascript',
                         '-e',
-                        'tell app "Finder" to display alert "{msg}" as warning'.format(msg=msg)
+                        (
+                            'tell app "Finder" to display alert '
+                            '"{msg}" as warning'.format(msg=msg)
+                        )
                     ],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
@@ -110,11 +115,11 @@ class Imgur(object):
                 # then just read the value from config file
                 self.set_tokens_using_config()
             logging.info('Get album list with access token')
-            logging.debug('Access token: {access_token}'.format(access_token=self.access_token))
-            headers = {'Authorization': 'Bearer {access_token}'.format(access_token=self.access_token)}
+            logging.debug('Access token: {token}'.format(token=self.access_token))
+            headers = {'Authorization': 'Bearer {token}'.format(token=self.access_token)}
         else:
             logging.info('Get album list without a access token')
-            headers = {'Authorization': 'Client-ID {client_id}'.format(client_id=self.client_id)}
+            headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self.client_id)}
 
         self.connect.request('GET', url, None, headers)
         result = json.loads(self.connect.getresponse().read())
@@ -147,10 +152,13 @@ class Imgur(object):
         if self.refresh_token is None:
             self.set_tokens_using_config()
         if self.refresh_token is None:
-            self.show_error_and_exit('Can\'t read the value of refresh_token, you may have to authorize again')
+            self.show_error_and_exit(
+                'Can\'t read the value of refresh_token, '
+                'you may have to authorize again'
+            )
 
         response = self.request_new_tokens()
-        if self.check_success(response):
+        if self.is_success(response):
             self.access_token = response['access_token']
             self.refresh_token = response['refresh_token']
         else:
@@ -172,7 +180,10 @@ class Imgur(object):
                 [
                     'osascript',
                     '-e',
-                    'tell app "SystemUIServer" to display dialog "{msg}" default answer "{link}" with icon 1'.format(msg=auth_msg, link=auth_url)
+                    (
+                        'tell app "SystemUIServer" to display dialog '
+                        '"{msg}" default answer "{link}" with icon 1'.format(msg=auth_msg, link=auth_url)
+                    )
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
@@ -185,9 +196,10 @@ class Imgur(object):
         Returns:
             pin code
         '''
-        auth_url = 'https://api.imgur.com/oauth2/authorize?\
-client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.client_id)
-        gui_auth_msg = 'This is the first time you use this program, you have to visit this URL in your browser and copy the PIN code: \n'
+        auth_url = ('https://api.imgur.com/oauth2/authorize?'
+                    'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self.client_id))
+        gui_auth_msg = ('This is the first time you use this program, '
+                        'you have to visit this URL in your browser and copy the PIN code: \n')
         cli_auth_msg = gui_auth_msg + auth_url
         token_msg = 'Enter PIN code displayed in the browser: '
 
@@ -211,7 +223,10 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
                     [
                         'osascript',
                         '-e',
-                        'tell app "SystemUIServer" to display dialog "{msg}" default answer "" with icon 1'.format(msg=token_msg),
+                        (
+                            'tell app "SystemUIServer" to display dialog '
+                            '"{msg}" default answer "" with icon 1'.format(msg=token_msg)
+                        ),
                         '-e',
                         'text returned of result'
                     ],
@@ -233,16 +248,26 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
         pin = self.ask_pin()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        self.connect.request('POST', token_url, urllib.urlencode({'client_id': self.client_id, 'client_secret': self.client_secret,
-                                                                  'grant_type': 'pin', 'pin': pin}), headers)
+        self.connect.request(
+            'POST',
+            token_url,
+            urllib.urlencode(
+                {
+                    'client_id': self.client_id,
+                    'client_secret': self.client_secret,
+                    'grant_type': 'pin', 'pin': pin
+                }
+            ),
+            headers
+        )
         result = json.loads(self.connect.getresponse().read())
-        if (self.check_success(result)):
+        if (self.is_success(result)):
             self.access_token = result['access_token']
             self.refresh_token = result['refresh_token']
         else:
             self.show_error_and_exit('Authorization error')
 
-    def check_success(self, result):
+    def is_success(self, result):
         '''
         Check the value of the result is success or not
         Args:
@@ -353,16 +378,14 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             album_id: the id of the album
         '''
         albums_json = self.request_album_list()
-        if not self.check_success(albums_json):
-            if albums_json['data']['error'] == 'The access token provided has expired.':
-                logging.info('Reauthorize...')
-                self.request_new_tokens_and_update()
-                self.write_tokens_to_config()
-                albums_json = self.request_album_list()
-                if not self.check_success(albums_json):
-                    self.show_error_and_exit('Get albums error(auth)')
-            else:
-                self.show_error_and_exit('Get albums unknown error')
+        if not self.is_success(albums_json):
+            logging.debug(albums_json)
+            logging.info('Reauthorize...')
+            self.request_new_tokens_and_update()
+            self.write_tokens_to_config()
+            albums_json = self.request_album_list()
+            if not self.is_success(albums_json):
+                self.show_error_and_exit('Get albums error(auth)')
         albums = albums_json['data']
         i = 1
         data_map = []
@@ -371,46 +394,50 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
         if self.env == Env.KDE:
             arg = ['kdialog', '--menu', '"Choose the album"']
-            for d in albums:
+            for album in albums:
                 arg.append(str(i))
-                arg.append('{d[title]}({d[privacy]})'.format(d=d))
-                data_map.append(d)
+                arg.append('{album[title]}({album[privacy]})'.format(album=album))
+                data_map.append(album)
                 i += 1
             arg.append(str(i))
             arg.append(no_album_msg)
             choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            n = choose_album_dialog.communicate()[0].strip()
-            if n == '':
-                self.show_error_and_exit('n should not be empty')
-            n = int(n)
+            album_number = choose_album_dialog.communicate()[0].strip()
+            if album_number == '':
+                self.show_error_and_exit('Album number should not be empty')
+            album_number = int(album_number)
         elif self.env == Env.MAC:
-            l = ''
-            for d in albums:
-                l = l + '"{i} {d[title]}({d[privacy]})",'.format(i=i, d=d)
-                data_map.append(d)
+            list_str = ''
+            for album in albums:
+                list_str = list_str + '"{i} {album[title]}({album[privacy]})",'.format(i=i, album=album)
+                data_map.append(album)
                 i += 1
             arg = [
                 'osascript',
                 '-e',
-                'tell app "Finder" to choose from list {{{l}}} with title "Choose From The List" with prompt "PickOne" OK button name "Select" cancel button name "Quit"'.format(l=l[:-1])
+                (
+                    'tell app "Finder" to choose from list '
+                    '{{{l}}} with title "Choose From The List" with prompt "PickOne" '
+                    'OK button name "Select" cancel button name "Quit"'.format(l=list_str[:-1])
+                )
             ]
             choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            n = choose_album_dialog.communicate()[0].strip()
-            n = n[:n.find(' ')]
-            if n == '':
+            album_number = choose_album_dialog.communicate()[0].strip()
+            album_number = album_number[:album_number.find(' ')]
+            if album_number == '':
                 self.show_error_and_exit('n should not be empty')
-            n = int(n)
+            album_number = int(album_number)
         else:
             print('Enter the number of the album you want to upload: ')
-            for d in albums:
-                print('{i}) {d[title]}({d[privacy]})'.format(i=i, d=d))
-                data_map.append(d)
+            for album in albums:
+                print('{i}) {album[title]}({album[privacy]})'.format(i=i, album=album))
+                data_map.append(album)
                 i += 1
-            print('{i}) {no_album_msg}'.format(i=i, no_album_msg=no_album_msg))
-            n = int(input())
+            print('{i}) {msg}'.format(i=i, msg=no_album_msg))
+            album_number = int(input())
 
-        if n != i:  # If the user doesn't choose 'Not belong to any album'
-            album_id = data_map[n - 1]['id']  # number select start from 1, so minus 1
+        if album_number != i:  # If the user doesn't choose 'Not belong to any album'
+            album_id = data_map[album_number - 1]['id']  # number select start from 1, so minus 1
             logging.info('Upload the image to the album...')
         else:
             logging.info('Upload the image...')
@@ -423,8 +450,9 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
             result: image upload response(json)
         '''
         if self.env == Env.KDE:
-            links = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-            links = links + '\n' + 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+            link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+            links = (link + '\n' +
+                     'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
             show_link_dialog = subprocess.Popen(
                 ['kdialog', '--msgbox', links],
                 stdout=subprocess.PIPE,
@@ -502,14 +530,14 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
         self.connect.request('POST', url, body, headers)
         result = json.loads(self.connect.getresponse().read())
-        if not self.check_success(result):
+        if not self.is_success(result):
             if result['data']['error'] == 'The access token provided has expired.':
                 logging.info('Reauthorize...')
                 self.request_new_tokens_and_update()
                 self.write_tokens_to_config()
                 self.connect.request('POST', url, body, headers)
                 result = json.loads(self.connect.getresponse().read())
-                if not self.check_success(result):
+                if not self.is_success(result):
                     self.show_error_and_exit('Upload image error(auth)')
             else:
                 self.show_error_and_exit('Upload image error')
@@ -518,17 +546,28 @@ client_id={client_id}&response_type=pin&state=carlcarl'.format(client_id=self.cl
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f',
-                        help='The image you want to upload',
-                        metavar='<image path>')
-    parser.add_argument('-d', nargs='?',
-                        default=None,
-                        help='The album id you want your image to be uploaded to',
-                        metavar='<album id>')
-    parser.add_argument('-g', action='store_true',
-                        help='GUI mode')
-    parser.add_argument('-n', action='store_true',
-                        help='Anonymous upload')
+    parser.add_argument(
+        '-f',
+        help='The image you want to upload',
+        metavar='<image path>'
+    )
+    parser.add_argument(
+        '-d',
+        nargs='?',
+        default=None,
+        help='The album id you want your image to be uploaded to',
+        metavar='<album id>'
+    )
+    parser.add_argument(
+        '-g',
+        action='store_true',
+        help='GUI mode'
+    )
+    parser.add_argument(
+        '-n',
+        action='store_true',
+        help='Anonymous upload'
+    )
     args = parser.parse_args()
 
     imgur = Imgur()
