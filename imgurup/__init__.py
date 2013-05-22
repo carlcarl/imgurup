@@ -15,6 +15,9 @@ import os
 import subprocess
 from abc import ABCMeta
 from abc import abstractmethod
+import time
+from functools import wraps
+import math
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
@@ -69,19 +72,71 @@ class Imgur():
         Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
         '''
-        self.connect = httplib.HTTPSConnection(url)
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.access_token = None
-        self.refresh_token = None
+        self._connect = httplib.HTTPSConnection(url)
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._access_token = None
+        self._refresh_token = None
 
         self._auth_url = ('https://api.imgur.com/oauth2/authorize?'
-                          'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self.client_id))
+                          'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self._client_id))
         self._gui_auth_msg = ('This is the first time you use this program, '
                               'you have to visit this URL in your browser and copy the PIN code: \n')
         self._cli_auth_msg = self._gui_auth_msg + self._auth_url
         self._token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
+
+    def retry(tries=2, delay=1):
+        """Retry calling the decorated function using an exponential backoff.
+
+        http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
+        original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+
+        :param ExceptionToCheck: the exception to check. may be a tuple of
+            exceptions to check
+        :type ExceptionToCheck: Exception or tuple
+        :param tries: number of times to try (not retry) before giving up
+        :type tries: int
+        :param delay: initial delay between retries in seconds
+        :type delay: int
+        :param backoff: backoff multiplier e.g. value of 2 will double the delay
+            each retry
+        :type backoff: int
+        :param logger: logger to use. If None, print
+        :type logger: logging.Logger instance
+        """
+
+        tries = math.floor(tries)
+        if tries < 0:
+            raise ValueError("tries must be 0 or greater")
+
+        if delay <= 0:
+            raise ValueError("delay must be greater than 0")
+
+        def deco_retry(f):
+
+            @wraps(f)
+            def f_retry(self, *args, **kwargs):
+                mtries, mdelay = tries, delay
+                while mtries > 1:
+                    result = f(self, *args, **kwargs)
+                    if self.is_success(result):
+                        return result['data']
+                    else:
+                        logging.info('Reauthorize...')
+                        self.request_new_tokens_and_update()
+                        self.write_tokens_to_config()
+                        time.sleep(mdelay)
+                        mtries -= 1
+                result = f(self, *args, **kwargs)
+                if self.is_success(result):
+                    return result['data']
+                else:
+                    self.show_error_and_exit('Error in {function}'.format(function=f.__name__))
+
+            return f_retry  # true decorator
+
+        return deco_retry
 
     @abstractmethod
     def show_error_and_exit(self, msg='Error'):
@@ -101,17 +156,18 @@ class Imgur():
         parser.read(self.CONFIG_PATH)
 
         try:
-            self.access_token = parser.get('Token', 'access_token')
+            self._access_token = parser.get('Token', 'access_token')
         except:
             logging.warning('Can\'t find access token, set to empty')
-            self.access_token = None
+            self._access_token = None
 
         try:
-            self.refresh_token = parser.get('Token', 'refresh_token')
+            self._refresh_token = parser.get('Token', 'refresh_token')
         except:
             logging.warning('Can\'t find refresh token, set to empty')
-            self.refresh_token = None
+            self._refresh_token = None
 
+    @retry()
     def request_album_list(self, account='me'):
         '''
         Request album list with the account
@@ -123,41 +179,20 @@ class Imgur():
         url = '/3/account/{account}/albums'.format(account=account)
 
         if account == 'me':
-            if self.access_token is None:
+            if self._access_token is None:
                 # If without assigning a value to access_token,
                 # then just read the value from config file
                 self.set_tokens_using_config()
             logging.info('Get album list with access token')
-            logging.debug('Access token: {token}'.format(token=self.access_token))
-            headers = {'Authorization': 'Bearer {token}'.format(token=self.access_token)}
+            logging.debug('Access token: {token}'.format(token=self._access_token))
+            headers = {'Authorization': 'Bearer {token}'.format(token=self._access_token)}
         else:
             logging.info('Get album list without a access token')
-            headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self.client_id)}
+            headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
-        self.connect.request('GET', url, None, headers)
-        result = json.loads(self.connect.getresponse().read())
+        self._connect.request('GET', url, None, headers)
+        result = json.loads(self._connect.getresponse().read())
         return result
-
-    def request_and_check_album_list(self, account='me'):
-        '''
-        Request album list with the account, then check the response.
-        If fail, reauthorize again. If fail again, exit the program.
-        Args:
-            account: The account name, 'me' means yourself
-        Returns:
-            Albums (list)
-        '''
-        albums_json = self.request_album_list(account)
-        if not self.is_success(albums_json):
-            logging.debug(albums_json)
-            logging.info('Reauthorize...')
-            self.request_new_tokens_and_update()
-            self.write_tokens_to_config()
-            albums_json = self.request_album_list()
-            if not self.is_success(albums_json):
-                self.show_error_and_exit('Get albums error(auth)')
-
-        return albums_json['data']
 
     def request_new_tokens(self):
         '''
@@ -169,23 +204,23 @@ class Imgur():
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         params = urllib.urlencode(
             {
-                'refresh_token': self.refresh_token,
-                'client_id': self.client_id,
-                'client_secret': self.client_secret,
+                'refresh_token': self._refresh_token,
+                'client_id': self._client_id,
+                'client_secret': self._client_secret,
                 'grant_type': 'refresh_token'
             }
         )
-        self.connect.request('POST', url, params, headers)
-        return json.loads(self.connect.getresponse().read())
+        self._connect.request('POST', url, params, headers)
+        return json.loads(self._connect.getresponse().read())
 
     def request_new_tokens_and_update(self):
         '''
         Request and update the access token and refresh token
         '''
 
-        if self.refresh_token is None:
+        if self._refresh_token is None:
             self.set_tokens_using_config()
-        if self.refresh_token is None:
+        if self._refresh_token is None:
             self.show_error_and_exit(
                 'Can\'t read the value of refresh_token, '
                 'you may have to authorize again'
@@ -193,8 +228,8 @@ class Imgur():
 
         response = self.request_new_tokens()
         if self.is_success(response):
-            self.access_token = response['access_token']
-            self.refresh_token = response['refresh_token']
+            self._access_token = response['access_token']
+            self._refresh_token = response['refresh_token']
         else:
             self.show_error_and_exit('Update tokens fail')
 
@@ -215,26 +250,26 @@ class Imgur():
 
         pin = self.ask_pin()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        self.connect.request(
+        self._connect.request(
             'POST',
             token_url,
             urllib.urlencode(
                 {
-                    'client_id': self.client_id,
-                    'client_secret': self.client_secret,
+                    'client_id': self._client_id,
+                    'client_secret': self._client_secret,
                     'grant_type': 'pin', 'pin': pin
                 }
             ),
             headers
         )
-        result = json.loads(self.connect.getresponse().read())
+        result = json.loads(self._connect.getresponse().read())
         if (self.is_success(result)):
-            self.access_token = result['access_token']
-            self.refresh_token = result['refresh_token']
+            self._access_token = result['access_token']
+            self._refresh_token = result['refresh_token']
         else:
             self.show_error_and_exit('Authorization error')
 
-    def is_success(self, result):
+    def is_success(self, response):
         '''
         Check the value of the result is success or not
         Args:
@@ -242,9 +277,9 @@ class Imgur():
         Returns:
             True if success, else False
         '''
-        if ('success' in result) and (not result['success']):
-            logging.info(result['data']['error'])
-            logging.debug(json.dumps(result))
+        if ('success' in response) and (not response['success']):
+            logging.info(response['data']['error'])
+            logging.debug(json.dumps(response))
             return False
         return True
 
@@ -257,29 +292,29 @@ class Imgur():
             result: The result return from the server
             config: The name of the config file
         '''
-        logging.debug('Access token: %s', self.access_token)
-        logging.debug('Refresh token: %s', self.refresh_token)
+        logging.debug('Access token: %s', self._access_token)
+        logging.debug('Refresh token: %s', self._refresh_token)
 
         parser = SafeConfigParser()
         parser.read(self.CONFIG_PATH)
         if not parser.has_section('Token'):
             parser.add_section('Token')
-        parser.set('Token', 'access_token', self.access_token)
-        parser.set('Token', 'refresh_token', self.refresh_token)
+        parser.set('Token', 'access_token', self._access_token)
+        parser.set('Token', 'refresh_token', self._refresh_token)
         with open(self.CONFIG_PATH, 'wb') as f:
             parser.write(f)
 
-    def random_string(self, length):
+    def _random_string(self, length):
         '''
         From http://stackoverflow.com/questions/68477
         '''
         return ''.join(random.choice(string.letters) for ii in range(length + 1))
 
-    def encode_multipart_data(self, data, files):
+    def _encode_multipart_data(self, data, files):
         '''
         From http://stackoverflow.com/questions/68477
         '''
-        boundary = self.random_string(30)
+        boundary = self._random_string(30)
 
         def get_content_type(filename):
             return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
@@ -350,17 +385,17 @@ class Imgur():
         if anonymous:  # Anonymous account
             print('Upload the image anonymously...')
             files = {'image': image_path}
-            body, headers = self.encode_multipart_data(data, files)
-            headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self.client_id)
+            body, headers = self._encode_multipart_data(data, files)
+            headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self._client_id)
         else:
             self.set_tokens_using_config()
-            if self.access_token is None or self.refresh_token is None:
+            if self._access_token is None or self._refresh_token is None:
                 # If the tokens are empty, means this is the first time using this
                 # tool, so call auth() to get tokens
                 self.auth()
                 self.write_tokens_to_config()
             if album_id is None:  # Means user doesn't specify the album
-                albums = self.request_and_check_album_list()
+                albums = self.request_album_list()
                 album_id = self.ask_album_id(albums)
                 if album_id is not None:
                     logging.info('Upload the image to the album...')
@@ -373,21 +408,18 @@ class Imgur():
                 data['album_id'] = album_id
 
             files = {'image': image_path}
-            body, headers = self.encode_multipart_data(data, files)
-            headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self.access_token)
+            body, headers = self._encode_multipart_data(data, files)
+            headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
-        self.connect.request('POST', url, body, headers)
-        result = json.loads(self.connect.getresponse().read())
+        self._connect.request('POST', url, body, headers)
+        result = json.loads(self._connect.getresponse().read())
         if not self.is_success(result):
-            if result['data']['error'] == 'The access token provided has expired.':
-                logging.info('Reauthorize...')
-                self.request_new_tokens_and_update()
-                self.write_tokens_to_config()
-                self.connect.request('POST', url, body, headers)
-                result = json.loads(self.connect.getresponse().read())
-                if not self.is_success(result):
-                    self.show_error_and_exit('Upload image error(auth)')
-            else:
+            logging.info('Reauthorize...')
+            self.request_new_tokens_and_update()
+            self.write_tokens_to_config()
+            self._connect.request('POST', url, body, headers)
+            result = json.loads(self._connect.getresponse().read())
+            if not self.is_success(result):
                 self.show_error_and_exit('Upload image error')
         self.show_link(result)
 
