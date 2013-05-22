@@ -304,46 +304,6 @@ class Imgur():
         with open(self.CONFIG_PATH, 'wb') as f:
             parser.write(f)
 
-    def _random_string(self, length):
-        '''
-        From http://stackoverflow.com/questions/68477
-        '''
-        return ''.join(random.choice(string.letters) for ii in range(length + 1))
-
-    def _encode_multipart_data(self, data, files):
-        '''
-        From http://stackoverflow.com/questions/68477
-        '''
-        boundary = self._random_string(30)
-
-        def get_content_type(filename):
-            return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-
-        def encode_field(field_name):
-            return ('--' + boundary,
-                    'Content-Disposition: form-data; name="%s"' % field_name,
-                    '', str(data[field_name]))
-
-        def encode_file(field_name):
-            filename = files[field_name]
-            return ('--' + boundary,
-                    'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
-                    'Content-Type: %s' % get_content_type(filename),
-                    '', open(filename, 'rb').read())
-
-        lines = []
-        for name in data:
-            lines.extend(encode_field(name))
-        for name in files:
-            lines.extend(encode_file(name))
-        lines.extend(('--%s--' % boundary, ''))
-        body = '\r\n'.join(lines)
-
-        headers = {'content-type': 'multipart/form-data; boundary=' + boundary,
-                   'content-length': str(len(body))}
-
-        return body, headers
-
     @abstractmethod
     def ask_image_path(self):
         pass
@@ -368,6 +328,43 @@ class Imgur():
             result: Image upload response(json)
         '''
         pass
+
+    def _encode_multipart_data(self, data, files):
+        '''
+        From http://stackoverflow.com/questions/68477
+        '''
+
+        def random_string(length):
+            return ''.join(random.choice(string.letters) for ii in range(length + 1))
+
+        def get_content_type(filename):
+            return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+        def encode_field(field_name):
+            return ('--' + boundary,
+                    'Content-Disposition: form-data; name="%s"' % field_name,
+                    '', str(data[field_name]))
+
+        def encode_file(field_name):
+            filename = files[field_name]
+            return ('--' + boundary,
+                    'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
+                    'Content-Type: %s' % get_content_type(filename),
+                    '', open(filename, 'rb').read())
+
+        boundary = random_string(30)
+        lines = []
+        for name in data:
+            lines.extend(encode_field(name))
+        for name in files:
+            lines.extend(encode_file(name))
+        lines.extend(('--%s--' % boundary, ''))
+        body = '\r\n'.join(lines)
+
+        headers = {'content-type': 'multipart/form-data; boundary=' + boundary,
+                   'content-length': str(len(body))}
+
+        return body, headers
 
     def upload_image(self, image_path=None, anonymous=True, album_id=None):
         '''
