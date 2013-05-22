@@ -43,5 +43,8 @@ Packcage Dependency
 
 Todo
 ----
-* Nothing for now
+* Zenity(GTK) and Cocoa(Mac)
+
+Development
+-----------
 
