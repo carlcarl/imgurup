@@ -192,7 +192,7 @@ class Imgur():
             headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
         self._connect.request('GET', url, None, headers)
-        result = json.loads(self._connect.getresponse().read())
+        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
         return result
 
     def request_new_tokens(self):
@@ -212,7 +212,7 @@ class Imgur():
             }
         )
         self._connect.request('POST', url, params, headers)
-        return json.loads(self._connect.getresponse().read())
+        return json.loads(self._connect.getresponse().read().decode('utf-8'))
 
     def request_new_tokens_and_update(self):
         '''
@@ -263,7 +263,7 @@ class Imgur():
             ),
             headers
         )
-        result = json.loads(self._connect.getresponse().read())
+        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
         if (self.is_success(result)):
             self._access_token = result['access_token']
             self._refresh_token = result['refresh_token']
@@ -410,13 +410,13 @@ class Imgur():
             headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
         self._connect.request('POST', url, body, headers)
-        result = json.loads(self._connect.getresponse().read())
+        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
         if not self.is_success(result):
             logging.info('Reauthorize...')
             self.request_new_tokens_and_update()
             self.write_tokens_to_config()
             self._connect.request('POST', url, body, headers)
-            result = json.loads(self._connect.getresponse().read())
+            result = json.loads(self._connect.getresponse().read().decode('utf-8'))
             if not self.is_success(result):
                 self.show_error_and_exit('Upload image error')
         self.show_link(result)
