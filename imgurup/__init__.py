@@ -168,6 +168,14 @@ class Imgur():
             logging.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
+    def _get_json_response(self):
+        '''
+        Get the json response of request
+        Returns:
+            Json response
+        '''
+        return json.loads(self._connect.getresponse().read().decode('utf-8'))
+
     @retry()
     def request_album_list(self, account='me'):
         '''
@@ -192,7 +200,7 @@ class Imgur():
             headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
         self._connect.request('GET', url, None, headers)
-        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
+        result = self._get_json_response()
         return result
 
     def request_new_tokens(self):
@@ -212,7 +220,7 @@ class Imgur():
             }
         )
         self._connect.request('POST', url, params, headers)
-        return json.loads(self._connect.getresponse().read().decode('utf-8'))
+        return self._get_json_response()
 
     def request_new_tokens_and_update(self):
         '''
@@ -263,7 +271,7 @@ class Imgur():
             ),
             headers
         )
-        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
+        result = self._get_json_response()
         if (self.is_success(result)):
             self._access_token = result['access_token']
             self._refresh_token = result['refresh_token']
@@ -410,13 +418,13 @@ class Imgur():
             headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
         self._connect.request('POST', url, body, headers)
-        result = json.loads(self._connect.getresponse().read().decode('utf-8'))
+        result = self._get_json_response()
         if not self.is_success(result):
             logging.info('Reauthorize...')
             self.request_new_tokens_and_update()
             self.write_tokens_to_config()
             self._connect.request('POST', url, body, headers)
-            result = json.loads(self._connect.getresponse().read().decode('utf-8'))
+            result = self._get_json_response()
             if not self.is_success(result):
                 self.show_error_and_exit('Upload image error')
         self.show_link(result)
