@@ -200,8 +200,7 @@ class Imgur():
             headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
         self._connect.request('GET', url, None, headers)
-        result = self._get_json_response()
-        return result
+        return self._get_json_response()
 
     def request_new_tokens(self):
         '''
@@ -375,7 +374,21 @@ class Imgur():
 
         return body, headers
 
-    def upload_image(self, image_path=None, anonymous=True, album_id=None):
+    @retry()
+    def request_upload_image(self, url, body, headers):
+        '''
+        Request upload image
+        Args:
+            url: Url string
+            body: The content string of the request
+            headers: The headers of the request (dict)
+        Returns:
+            Response of upload image
+        '''
+        self._connect.request('POST', url, body, headers)
+        return self._get_json_response()
+
+    def upload(self, image_path=None, anonymous=True, album_id=None):
         '''
         Upload a image
         Args:
@@ -699,7 +712,7 @@ def main():
     args = parser.parse_args()
 
     imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(args.g))
-    imgur.upload_image(args.f, args.n, args.d)
+    imgur.upload(args.f, args.n, args.d)
 
 
 if __name__ == '__main__':
