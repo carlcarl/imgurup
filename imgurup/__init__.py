@@ -168,6 +168,9 @@ class Imgur():
             logging.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
+    def _request(self, method, url, body, headers):
+        return self._connect.request(method, url, body, headers)
+
     def _get_json_response(self):
         '''
         Get the json response of request
@@ -199,7 +202,7 @@ class Imgur():
             logging.info('Get album list without a access token')
             headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
-        self._connect.request('GET', url, None, headers)
+        self._request('GET', url, None, headers)
         return self._get_json_response()
 
     def request_new_tokens(self):
@@ -218,7 +221,7 @@ class Imgur():
                 'grant_type': 'refresh_token'
             }
         )
-        self._connect.request('POST', url, params, headers)
+        self._request('POST', url, params, headers)
         return self._get_json_response()
 
     def request_new_tokens_and_update(self):
@@ -258,7 +261,7 @@ class Imgur():
 
         pin = self.ask_pin()
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        self._connect.request(
+        self._request(
             'POST',
             token_url,
             urllib.urlencode(
@@ -385,7 +388,7 @@ class Imgur():
         Returns:
             Response of upload image
         '''
-        self._connect.request('POST', url, body, headers)
+        self._request('POST', url, body, headers)
         return self._get_json_response()
 
     def upload(self, image_path=None, anonymous=True, album_id=None):
@@ -430,13 +433,13 @@ class Imgur():
             body, headers = self._encode_multipart_data(data, files)
             headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
-        self._connect.request('POST', url, body, headers)
+        self._request('POST', url, body, headers)
         result = self._get_json_response()
         if not self.is_success(result):
             logging.info('Reauthorize...')
             self.request_new_tokens_and_update()
             self.write_tokens_to_config()
-            self._connect.request('POST', url, body, headers)
+            self._request('POST', url, body, headers)
             result = self._get_json_response()
             if not self.is_success(result):
                 self.show_error_and_exit('Upload image error')
