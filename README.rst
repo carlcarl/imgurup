@@ -20,6 +20,7 @@ or
 
     sudo pip install imgurup
 
+
 Usage
 -----
 ``img [-h] [-f <image path>] [-d [<album id>]] [-g] [-n]``
@@ -27,6 +28,8 @@ Usage
 You can just type ``img`` without any argument, the program will ask you for another infomation.
 
 But add ``-f`` argument with your image file would be easier to use, ex: ``img -f xx.jpg``
+
+After the authentication, the access_token and refresh_token will be saved in `~/.imgurup.conf`
 
 Optional arguments:
 ::
