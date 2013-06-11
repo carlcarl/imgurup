@@ -1,0 +1,19 @@
+[Desktop Entry]
+Comment[en_US]=
+Comment=
+Exec=img -g -f\s
+GenericName[en_US]=Send to imgur
+GenericName=上傳到 imgur
+MimeType=image/png;image/jpeg;image/gif;
+Name[en_US]=Send to imgur
+Name=上傳到 imgur
+NoDisplay=true
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-SubstituteUID=false
+X-KDE-Username=

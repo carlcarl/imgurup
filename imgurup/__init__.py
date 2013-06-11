@@ -19,6 +19,7 @@ from abc import abstractmethod
 import time
 from functools import wraps
 import math
+import shutil
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
@@ -79,8 +80,10 @@ class Imgur():
         self._access_token = None
         self._refresh_token = None
 
-        self._auth_url = ('https://api.imgur.com/oauth2/authorize?'
-                          'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self._client_id))
+        self._auth_url = (
+            'https://api.imgur.com/oauth2/authorize?'
+            'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self._client_id)
+        )
         self._gui_auth_msg = ('This is the first time you use this program, '
                               'you have to visit this URL in your browser and copy the PIN code: \n')
         self._cli_auth_msg = self._gui_auth_msg + self._auth_url
@@ -595,7 +598,8 @@ class MacImgur(Imgur):
                 '-e',
                 (
                     'tell app "SystemUIServer" to display dialog '
-                    '"{msg}" default answer "{link}" with icon 1'.format(msg=self._auth_msg, link=self._auth_url)
+                    '"{msg}" default answer "{link}" '
+                    'with icon 1'.format(msg=self._auth_msg, link=self._auth_url)
                 )
             ],
             stdout=subprocess.PIPE,
@@ -667,7 +671,10 @@ class MacImgur(Imgur):
             [
                 'osascript',
                 '-e',
-                'tell app "Finder" to display dialog "Image Link" default answer "{link}" buttons {{"Show delete link", "OK"}} default button 2'.format(link=link)
+                'tell app "Finder" to display dialog "Image Link" '
+                'default answer "{link}" '
+                'buttons {{"Show delete link", "OK"}} '
+                'default button 2'.format(link=link)
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -680,7 +687,8 @@ class MacImgur(Imgur):
                 [
                     'osascript',
                     '-e',
-                    'tell app "Finder" to display dialog "Delete link" default answer "{link}"'.format(link=delete_link)
+                    'tell app "Finder" to display dialog "Delete link" '
+                    'default answer "{link}"'.format(link=delete_link)
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
@@ -712,8 +720,18 @@ def main():
         action='store_true',
         help='Anonymous upload'
     )
+    parser.add_argument(
+        '-s',
+        action='store_true',
+        help='Add command in the context menu of file manager'
+        '(Now only support KDE)'
+    )
     args = parser.parse_args()
 
+    if args.s:
+        shutil.copy2(os.path.dirname(__file__) + '/data/imgurup.desktop',
+                     os.path.expanduser('~/.local/share/applications/'))
+        return
     imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(args.g))
     imgur.upload(args.f, args.n, args.d)
 

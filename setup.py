@@ -5,12 +5,15 @@ setup(
     name='imgurup',
     description='Upload to imgur using API(v3). Support CLI, KDE and Mac dialog upload. And you can also use your account to upload :).',
     long_description=open('README.rst').read(),
-    version='1.0.0',
+    version='1.1.0',
     author='carlcarl',
     author_email='carlcarlking@gmail.com',
     url='https://github.com/carlcarl/imgurup',
     packages=find_packages(),
     license='MIT',
+    package_data={
+        'imgurup': ['data/*'],
+    },
     entry_points={
         'console_scripts': [
             'img = imgurup:main',
