@@ -22,6 +22,7 @@ import math
 import shutil
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ImgurFactory:
@@ -127,7 +128,7 @@ class Imgur():
                     if self.is_success(result):
                         return result['data']
                     else:
-                        logging.info('Reauthorize...')
+                        logger.info('Reauthorize...')
                         self.request_new_tokens_and_update()
                         self.write_tokens_to_config()
                         time.sleep(mdelay)
@@ -162,13 +163,13 @@ class Imgur():
         try:
             self._access_token = parser.get('Token', 'access_token')
         except:
-            logging.warning('Can\'t find access token, set to empty')
+            logger.warning('Can\'t find access token, set to empty')
             self._access_token = None
 
         try:
             self._refresh_token = parser.get('Token', 'refresh_token')
         except:
-            logging.warning('Can\'t find refresh token, set to empty')
+            logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
     def _request(self, method, url, body, headers):
@@ -198,11 +199,11 @@ class Imgur():
                 # If without assigning a value to access_token,
                 # then just read the value from config file
                 self.set_tokens_using_config()
-            logging.info('Get album list with access token')
-            logging.debug('Access token: {token}'.format(token=self._access_token))
+            logger.info('Get album list with access token')
+            logger.debug('Access token: {token}'.format(token=self._access_token))
             headers = {'Authorization': 'Bearer {token}'.format(token=self._access_token)}
         else:
-            logging.info('Get album list without a access token')
+            logger.info('Get album list without a access token')
             headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
 
         self._request('GET', url, None, headers)
@@ -292,8 +293,8 @@ class Imgur():
             True if success, else False
         '''
         if ('success' in response) and (not response['success']):
-            logging.info(response['data']['error'])
-            logging.debug(json.dumps(response))
+            logger.info(response['data']['error'])
+            logger.debug(json.dumps(response))
             return False
         return True
 
@@ -306,8 +307,8 @@ class Imgur():
             result: The result return from the server
             config: The name of the config file
         '''
-        logging.debug('Access token: %s', self._access_token)
-        logging.debug('Refresh token: %s', self._refresh_token)
+        logger.debug('Access token: %s', self._access_token)
+        logger.debug('Refresh token: %s', self._refresh_token)
 
         parser = SafeConfigParser()
         parser.read(self.CONFIG_PATH)
@@ -423,13 +424,13 @@ class Imgur():
                 albums = self.request_album_list()
                 album_id = self.ask_album_id(albums)
                 if album_id is not None:
-                    logging.info('Upload the image to the album...')
+                    logger.info('Upload the image to the album...')
                     data['album_id'] = album_id
                 else:
                     # If it's None, means user doesn't want to upload to any album
-                    logging.info('Upload the image...')
+                    logger.info('Upload the image...')
             else:
-                logging.info('Upload the image to the album...')
+                logger.info('Upload the image to the album...')
                 data['album_id'] = album_id
 
             files = {'image': image_path}
@@ -439,7 +440,7 @@ class Imgur():
         self._request('POST', url, body, headers)
         result = self._get_json_response()
         if not self.is_success(result):
-            logging.info('Reauthorize...')
+            logger.info('Reauthorize...')
             self.request_new_tokens_and_update()
             self.write_tokens_to_config()
             self._request('POST', url, body, headers)
@@ -452,7 +453,7 @@ class Imgur():
 class CLIImgur(Imgur):
 
     def show_error_and_exit(self, msg="Error"):
-        logging.error(msg)
+        logger.error(msg)
         sys.exit(1)
 
     def ask_pin(self):
@@ -496,7 +497,7 @@ class KDEImgur(Imgur):
             stderr=subprocess.PIPE
         )
         show_error_dialog.communicate()
-        logging.error(msg)
+        logger.error(msg)
         sys.exit(1)
 
     def ask_pin(self):
@@ -588,7 +589,7 @@ class MacImgur(Imgur):
             stderr=subprocess.PIPE
         )
         show_error_dialog.communicate()
-        logging.error(msg)
+        logger.error(msg)
         sys.exit(1)
 
     def ask_pin(self):
