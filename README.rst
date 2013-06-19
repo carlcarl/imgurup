@@ -1,12 +1,12 @@
 imgurup
 ============
-Upload to imgur using API(v3). Support CLI, KDE and Mac dialog upload. And you can also use your account to upload :).
+Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload. And you can also use your account to upload :).
 
 
 Feature
 -------
 Support upload images(anonymously) or with your account.
-Support CLI, KDE and Mac dialog upload
+Support CLI, KDE, Zenity(GTK) and Mac dialog upload
 
 Installation
 ------------
@@ -47,7 +47,7 @@ Packcage Dependency
 
 Todo
 ----
-* Zenity(GTK) and Cocoa(Mac)
+* Cocoa(Mac)
 
 Development
 -----------
