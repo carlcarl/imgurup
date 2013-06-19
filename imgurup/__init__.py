@@ -49,6 +49,8 @@ class ImgurFactory:
             return KDEImgur
         elif is_gui and sys.platform == 'darwin':
             return MacImgur
+        elif is_gui and os.environ.get('DESKTOP_SESSION') == 'gnome':
+            return ZenityImgur
         else:
             return CLIImgur
 
@@ -852,7 +854,7 @@ def main():
         shutil.copy2(os.path.dirname(__file__) + '/data/imgurup.desktop',
                      os.path.expanduser('~/.local/share/applications/'))
         return
-    imgur = ImgurFactory.get_imgur(ZenityImgur)
+    imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(args.g))
     imgur.upload(args.f, args.n, args.d)
 
 
