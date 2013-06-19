@@ -1,3 +1,7 @@
+1.2.0
+-----
+* Add Zenity dialog
+
 1.1.0
 -----
 * Add -s option: Add 'send to imgur' function in KDE dolphin
