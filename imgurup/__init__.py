@@ -692,6 +692,9 @@ class MacImgur(Imgur):
         ]
         return args
 
+    def get_ask_album_id_dialog_args(self, albums):
+        pass
+
     def ask_album_id(self, albums):
         i = 1
         data_map = []
@@ -738,7 +741,8 @@ class MacImgur(Imgur):
             stderr=subprocess.PIPE
         )
         response = show_link_dialog.communicate()[0].strip()
-        response = response[response.rfind(':') + 1:]
+        response = response[response.find(':') + 1:response.find(',')]
+        print(response)
         if response == 'Show delete link':
             delete_link = 'http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
             args2 = [
