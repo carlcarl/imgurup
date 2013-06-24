@@ -140,19 +140,32 @@ class Imgur():
                     return result['data']
                 else:
                     self.show_error_and_exit('Error in {function}'.format(function=f.__name__))
-
             return f_retry  # true decorator
-
         return deco_retry
 
     @abstractmethod
+    def get_error_dialog_args(self, msg='Error'):
+        '''
+        Retrun the subprocess args of display error dialog
+        Args:
+            msg: Error message
+        Returns:
+            A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+        '''
+        pass
+
     def show_error_and_exit(self, msg='Error'):
         '''
         Display error message and exit the program
         Args:
             msg: Error message
         '''
-        pass
+        args = self.get_error_dialog_args(msg)
+        if args:
+            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+        logger.error(msg)
+        sys.exit(1)
 
     def set_tokens_using_config(self):
         '''
@@ -251,13 +264,35 @@ class Imgur():
             self.show_error_and_exit('Update tokens fail')
 
     @abstractmethod
+    def get_auth_msg_dialog_args(self):
+        pass
+
+    @abstractmethod
+    def get_enter_pin_dialog_args(self):
+        pass
+
     def ask_pin(self):
         '''
         Ask user for pin code
         Returns:
             pin code
         '''
-        pass
+        args = self.get_auth_msg_dialog_args()
+        auth_msg_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        auth_msg_dialog.communicate()
+
+        args = self.get_enter_pin_dialog_args()
+        ask_pin_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        pin = ask_pin_dialog.communicate()[0].strip()
+        return pin
 
     def auth(self):
         '''
@@ -322,29 +357,83 @@ class Imgur():
             parser.write(f)
 
     @abstractmethod
-    def ask_image_path(self):
+    def get_ask_image_path_dialog_args(self):
+        '''
+        Retrun the subprocess args of file dialog
+        Returns:
+            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+        '''
         pass
+
+    def ask_image_path(self):
+        '''
+        Display a file dialog and prompt the user to select a image
+        Returns:
+            image_path: A string
+        '''
+        args = self.get_ask_image_path_dialog_args()
+        ask_image_path_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        image_path = ask_image_path_dialog.communicate()[0].strip()
+        if image_path == '':  # Cancel dialog
+            sys.exit(1)
+
+        return image_path
 
     def _get_album_id(self, data_map, album_number):
         return data_map[album_number - 1]['id']
 
     @abstractmethod
+    def get_ask_album_id_dialog_args(self, albums):
+        pass
+
     def ask_album_id(self, albums):
         '''
         Ask user to choose a album to upload or not belong to any album
         Returns:
             album_id: The id of the album
         '''
-        pass
+        args = self.get_ask_album_id_dialog_args(albums)
+        choose_album_dialog = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        album_number = choose_album_dialog.communicate()[0].strip()
+        if album_number == '':
+            self.show_error_and_exit('Album number should not be empty')
+        album_number = int(album_number)
+        data_map = []
+        for album in albums:
+            data_map.append(album)
+        return self._get_album_id(data_map, album_number)
 
     @abstractmethod
+    def get_show_link_dialog_args(self, links):
+        '''
+        Retrun the subprocess args of show link dialog
+        Returns:
+
+        '''
+        pass
+
     def show_link(self, result):
         '''
         Show image link
         Args:
-            result: Image upload response(json)
+            result: Image upload response(json(dict))
+        Returns:
+            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
         '''
-        pass
+        link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+        links = (link + '\n' +
+                 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+        args = self.get_show_link_dialog_args(links)
+        show_link_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        show_link_dialog.communicate()
 
     def _encode_multipart_data(self, data, files):
         '''
@@ -454,18 +543,29 @@ class Imgur():
 
 class CLIImgur(Imgur):
 
-    def show_error_and_exit(self, msg="Error"):
-        logger.error(msg)
-        sys.exit(1)
+    def get_error_dialog_args(self, msg='Error'):
+        return None
+
+    def get_auth_msg_dialog_args(self):
+        pass
+
+    def get_enter_pin_dialog_args(self):
+        pass
 
     def ask_pin(self):
         print(self._auth_msg_with_url)
         pin = raw_input(self._token_msg)
         return pin
 
+    def get_ask_image_path_dialog_args(self):
+        pass
+
     def ask_image_path(self):
         image_path = input('Enter your image location: ')
         return image_path
+
+    def get_ask_album_id_dialog_args(self, albums):
+        pass
 
     def ask_album_id(self, albums):
         i = 1
@@ -481,6 +581,9 @@ class CLIImgur(Imgur):
         # Return album id, number select start from 1, so minus 1
         return self._get_album_id(data_map, album_number)
 
+    def get_show_link_dialog_args(self):
+        pass
+
     def show_link(self, result):
         print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
         print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
@@ -488,100 +591,64 @@ class CLIImgur(Imgur):
 
 class KDEImgur(Imgur):
 
-    def show_error_and_exit(self, msg="Error"):
+    def get_error_dialog_args(self, msg='Error'):
         args = [
             'kdialog',
             '--error',
             msg,
         ]
-        show_error_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        show_error_dialog.communicate()
-        logger.error(msg)
-        sys.exit(1)
+        return args
 
-    def ask_pin(self):
+    def get_auth_msg_dialog_args(self):
         args = [
             'kdialog',
             '--msgbox',
             self._auth_msg_with_url,
         ]
-        auth_msg_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        auth_msg_dialog.communicate()
+        return args
 
-        args2 = [
+    def get_enter_pin_dialog_args(self):
+        args = [
             'kdialog',
             '--title',
             'Input dialog',
             '--inputbox',
             self._token_msg,
         ]
-        ask_pin_dialog = subprocess.Popen(
-            args2,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        pin = ask_pin_dialog.communicate()[0].strip()
+        return args
 
-        return pin
-
-    def ask_image_path(self):
+    def get_ask_image_path_dialog_args(self):
         args = [
             'kdialog',
             '--getopenfilename',
             '.',
         ]
-        ask_image_path_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        image_path = ask_image_path_dialog.communicate()[0].strip()
-        if image_path == '':  # Cancel dialog
-            sys.exit(1)
+        return args
 
-        return image_path
-
-    def ask_album_id(self, albums):
+    def get_ask_album_id_dialog_args(self, albums):
         i = 1
-        data_map = []
-        arg = ['kdialog', '--menu', '"Choose the album"']
+        args = ['kdialog', '--menu', '"Choose the album"']
         for album in albums:
-            arg.append(str(i))
-            arg.append('{album[title]}({album[privacy]})'.format(album=album))
-            data_map.append(album)
+            args.append(str(i))
+            args.append('{album[title]}({album[privacy]})'.format(album=album))
             i += 1
-        arg.append(str(i))
-        arg.append(self._no_album_msg)
-        choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        album_number = choose_album_dialog.communicate()[0].strip()
-        if album_number == '':
-            self.show_error_and_exit('Album number should not be empty')
-        album_number = int(album_number)
-        return self._get_album_id(data_map, album_number)
+        args.append(str(i))
+        args.append(self._no_album_msg)
 
-    def show_link(self, result):
-        link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-        links = (link + '\n' +
-                 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
-        show_link_dialog = subprocess.Popen(
-            ['kdialog', '--msgbox', links],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        show_link_dialog.communicate()
+        return args
+
+    def get_show_link_dialog_args(self, links):
+        args = [
+            'kdialog',
+            '--msgbox',
+            links,
+        ]
+        return args
 
 
 class MacImgur(Imgur):
 
-    def show_error_and_exit(self, msg="Error"):
+    def get_error_dialog_args(self, msg='Error'):
         args = [
             'osascript',
             '-e',
@@ -590,16 +657,9 @@ class MacImgur(Imgur):
                 '"{msg}" as warning'.format(msg=msg)
             ),
         ]
-        show_error_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        show_error_dialog.communicate()
-        logger.error(msg)
-        sys.exit(1)
+        return args
 
-    def ask_pin(self):
+    def get_auth_msg_dialog_args(self):
         args = [
             'osascript',
             '-e',
@@ -609,14 +669,10 @@ class MacImgur(Imgur):
                 'with icon 1'.format(msg=self._auth_msg, link=self._auth_url)
             ),
         ]
-        auth_msg_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        auth_msg_dialog.communicate()
+        return args
 
-        args2 = [
+    def get_enter_pin_dialog_args(self):
+        args = [
             'osascript',
             '-e',
             (
@@ -626,30 +682,15 @@ class MacImgur(Imgur):
             '-e',
             'text returned of result',
         ]
-        ask_pin_dialog = subprocess.Popen(
-            args2,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        pin = ask_pin_dialog.communicate()[0].strip()
-        return pin
+        return args
 
-    def ask_image_path(self):
+    def get_ask_image_path_dialog_args(self):
         args = [
             'osascript',
             '-e',
             'tell app "Finder" to POSIX path of (choose file with prompt "Choose Image:")',
         ]
-        ask_image_path_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        image_path = ask_image_path_dialog.communicate()[0].strip()
-        if image_path == '':  # Cancel dialog
-            sys.exit(1)
-
-        return image_path
+        return args
 
     def ask_album_id(self, albums):
         i = 1
@@ -659,7 +700,7 @@ class MacImgur(Imgur):
             list_str = list_str + '"{i} {album[title]}({album[privacy]})",'.format(i=i, album=album)
             data_map.append(album)
             i += 1
-        arg = [
+        args = [
             'osascript',
             '-e',
             (
@@ -668,13 +709,16 @@ class MacImgur(Imgur):
                 'OK button name "Select" cancel button name "Quit"'.format(l=list_str[:-1])
             ),
         ]
-        choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        choose_album_dialog = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         album_number = choose_album_dialog.communicate()[0].strip()
         album_number = album_number[:album_number.find(' ')]
         if album_number == '':
             self.show_error_and_exit('n should not be empty')
         album_number = int(album_number)
         return self._get_album_id(data_map, album_number)
+
+    def get_show_link_dialog_args(self):
+        pass
 
     def show_link(self, result):
         link = result['data']['link'].replace('\\', '')
@@ -715,68 +759,40 @@ class MacImgur(Imgur):
 
 class ZenityImgur(Imgur):
 
-    def show_error_and_exit(self, msg="Error"):
+    def get_error_dialog_args(self, msg='Error'):
         args = [
             'zenity',
             '--error',
             '--text={text}'.format(text=msg),
         ]
-        show_error_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        show_error_dialog.communicate()
-        logger.error(msg)
-        sys.exit(1)
+        return args
 
-    def ask_pin(self):
-
+    def get_auth_msg_dialog_args(self):
         args = [
             'zenity',
             '--entry',
             '--text={msg}'.format(msg=self._auth_msg),
             '--entry-text={link}'.format(link=self._auth_url),
         ]
-        auth_msg_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        auth_msg_dialog.communicate()
+        return args
 
-        args2 = [
+    def get_enter_pin_dialog_args(self):
+        args = [
             'zenity',
             '--entry',
             '--text={msg}'.format(msg=self._token_msg),
         ]
-        ask_pin_dialog = subprocess.Popen(
-            args2,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        pin = ask_pin_dialog.communicate()[0].strip()
-        return pin
+        return args
 
-    def ask_image_path(self):
+    def get_ask_image_path_dialog_args(self):
         args = [
             'zenity',
             '--file-selection',
         ]
-        ask_image_path_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        image_path = ask_image_path_dialog.communicate()[0].strip()
-        if image_path == '':  # Cancel dialog
-            sys.exit(1)
+        return args
 
-        return image_path
-
-    def ask_album_id(self, albums):
+    def get_ask_album_id_dialog_args(self, albums):
         i = 1
-        data_map = []
         arg = [
             'zenity',
             '--list',
@@ -789,33 +805,18 @@ class ZenityImgur(Imgur):
             arg.append(str(i))
             arg.append('{album[title]}'.format(album=album))
             arg.append('{album[privacy]}'.format(album=album))
-            data_map.append(album)
             i += 1
         arg.append(str(i))
         arg.append(self._no_album_msg)
         arg.append('public')
-        choose_album_dialog = subprocess.Popen(arg, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        album_number = choose_album_dialog.communicate()[0].strip()
-        if album_number == '':
-            self.show_error_and_exit('Album number should not be empty')
-        album_number = int(album_number)
-        return self._get_album_id(data_map, album_number)
 
-    def show_link(self, result):
-        link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-        links = (link + '\n' +
-                 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+    def get_show_link_dialog_args(self, links):
         args = [
             'zenity',
             '--info',
             '--text={links}'.format(links=links),
         ]
-        show_link_dialog = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        show_link_dialog.communicate()
+        return args
 
 
 def main():
