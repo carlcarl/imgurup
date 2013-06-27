@@ -47,7 +47,7 @@ Packcage Dependency
 
 Todo
 ----
-* Cocoa(Mac)
+* None
 
 Development
 -----------
