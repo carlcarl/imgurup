@@ -39,7 +39,7 @@ Optional arguments:
 	-d [<album id>]  The album id you want your image to be uploaded to
 	-g               GUI mode
 	-n               Anonymous upload
-	-s               Add command in the context menu of file manager(Now only support KDE dolphin)
+	-s               Add command in the context menu of file manager(Support Gnome and KDE)
 
 Packcage Dependency
 -------------------

@@ -1,3 +1,10 @@
+1.3.0
+-----
+* Simplify the inheritance of Imgur 
+* Update the methods which should be implemented with inheritance 
+* Fix bug: Can't show delete link on Mac
+* Add support to elementary os
+
 1.2.0
 -----
 * Add Zenity dialog
