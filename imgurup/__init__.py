@@ -51,6 +51,8 @@ class ImgurFactory:
             return MacImgur
         elif is_gui and os.environ.get('DESKTOP_SESSION') == 'gnome':
             return ZenityImgur
+        elif is_gui and os.environ.get('DESKTOP_SESSION') == 'pantheon':
+            return ZenityImgur
         else:
             return CLIImgur
 

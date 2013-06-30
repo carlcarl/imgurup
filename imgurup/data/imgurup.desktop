@@ -1,7 +1,7 @@
 [Desktop Entry]
 Comment[en_US]=
 Comment=
-Exec=img -g -f\s
+Exec=img -g -f %f
 GenericName[en_US]=Send to imgur
 GenericName=上傳到 imgur
 MimeType=image/png;image/jpeg;image/gif;
