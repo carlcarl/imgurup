@@ -41,7 +41,8 @@ class ImgurFactory:
         '''
         Detect environment
         Args:
-            is_gui: If False, choose CLI, otherwise detect settings and choose a GUI mode
+            is_gui: If False, choose CLI,
+                    otherwise detect settings and choose a GUI mode
         Returns:
             Subclass of Imgur
         '''
@@ -90,7 +91,8 @@ class Imgur():
             'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self._client_id)
         )
         self._auth_msg = ('This is the first time you use this program, '
-                          'you have to visit this URL in your browser and copy the PIN code: \n')
+                          'you have to visit this URL in your browser '
+                          'and copy the PIN code: \n')
         self._auth_msg_with_url = self._auth_msg + self._auth_url
         self._token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
@@ -108,11 +110,6 @@ class Imgur():
         :type tries: int
         :param delay: initial delay between retries in seconds
         :type delay: int
-        :param backoff: backoff multiplier e.g. value of 2 will double the delay
-            each retry
-        :type backoff: int
-        :param logger: logger to use. If None, print
-        :type logger: logging.Logger instance
         """
 
         tries = math.floor(tries)
@@ -141,7 +138,9 @@ class Imgur():
                 if self.is_success(result):
                     return result['data']
                 else:
-                    self.show_error_and_exit('Error in {function}'.format(function=f.__name__))
+                    self.show_error_and_exit(
+                        'Error in {function}'.format(function=f.__name__)
+                    )
             return f_retry  # true decorator
         return deco_retry
 
@@ -217,11 +216,17 @@ class Imgur():
                 # then just read the value from config file
                 self.set_tokens_using_config()
             logger.info('Get album list with access token')
-            logger.debug('Access token: {token}'.format(token=self._access_token))
-            headers = {'Authorization': 'Bearer {token}'.format(token=self._access_token)}
+            logger.debug(
+                'Access token: {token}'.format(token=self._access_token)
+            )
+            headers = {
+                'Authorization': 'Bearer {token}'.format(token=self._access_token)
+            }
         else:
             logger.info('Get album list without a access token')
-            headers = {'Authorization': 'Client-ID {c_id}'.format(c_id=self._client_id)}
+            headers = {
+                'Authorization': 'Client-ID {_id}'.format(_id=self._client_id)
+            }
 
         self._request('GET', url, None, headers)
         return self._get_json_response()
@@ -233,7 +238,10 @@ class Imgur():
             Tokens (dict type with json)
         '''
         url = '/oauth2/token'
-        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/plain"
+        }
         params = urllib.urlencode(
             {
                 'refresh_token': self._refresh_token,
@@ -266,11 +274,26 @@ class Imgur():
             self.show_error_and_exit('Update tokens fail')
 
     @abstractmethod
-    def get_auth_msg_dialog_args(self):
+    def get_auth_msg_dialog_args(self, auth_msg, auth_url):
+        '''
+        Retrun the subprocess args of show authorization message dialog
+        Args:
+            auth_msg: Authorization message
+            auth_url: Authorization url
+        Returns:
+            A list include dialog command
+        '''
         pass
 
     @abstractmethod
-    def get_enter_pin_dialog_args(self):
+    def get_enter_pin_dialog_args(self, token_msg):
+        '''
+        Retrun the subprocess args of enter pin dialog
+        Args:
+            token_msg: Enter token message
+        Returns:
+            A list include dialog command
+        '''
         pass
 
     def ask_pin(self):
@@ -279,7 +302,10 @@ class Imgur():
         Returns:
             pin code
         '''
-        args = self.get_auth_msg_dialog_args()
+        args = self.get_auth_msg_dialog_args(
+            self._auth_msg,
+            self._auth_url,
+        )
         auth_msg_dialog = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -287,7 +313,7 @@ class Imgur():
         )
         auth_msg_dialog.communicate()
 
-        args = self.get_enter_pin_dialog_args()
+        args = self.get_enter_pin_dialog_args(self._token_msg)
         ask_pin_dialog = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -363,7 +389,7 @@ class Imgur():
         '''
         Retrun the subprocess args of file dialog
         Returns:
-            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
         '''
         pass
 
@@ -389,7 +415,15 @@ class Imgur():
         return data_map[album_number - 1]['id']
 
     @abstractmethod
-    def get_ask_album_id_dialog_args(self, albums):
+    def get_ask_album_id_dialog_args(self, albums, no_album_msg):
+        '''
+        Retrun the subprocess args of choose album dialog
+        Args:
+            albums: Album list
+            no_album_msg: The string of no upload to any album
+        Returns:
+            A list include dialog command
+        '''
         pass
 
     def ask_album_id(self, albums):
@@ -398,8 +432,12 @@ class Imgur():
         Returns:
             album_id: The id of the album
         '''
-        args = self.get_ask_album_id_dialog_args(albums)
-        choose_album_dialog = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        args = self.get_ask_album_id_dialog_args(albums, self._no_album_msg)
+        choose_album_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
         album_number = choose_album_dialog.communicate()[0].strip()
         if album_number == '':
             self.show_error_and_exit('Album number should not be empty')
@@ -424,11 +462,13 @@ class Imgur():
         Args:
             result: Image upload response(json(dict))
         Returns:
-            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
         '''
         link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
-        links = (link + '\n' +
-                 'Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+        links = (
+            link + '\nDelete link: http://imgur.com/delete/' +
+            '{delete}'.format(delete=result['data']['deletehash'])
+        )
         args = self.get_show_link_dialog_args(links)
         show_link_dialog = subprocess.Popen(
             args,
@@ -548,10 +588,10 @@ class CLIImgur(Imgur):
     def get_error_dialog_args(self, msg='Error'):
         return None
 
-    def get_auth_msg_dialog_args(self):
+    def get_auth_msg_dialog_args(self, auth_msg, auth_url):
         pass
 
-    def get_enter_pin_dialog_args(self):
+    def get_enter_pin_dialog_args(self, token_msg):
         pass
 
     def ask_pin(self):
@@ -566,7 +606,7 @@ class CLIImgur(Imgur):
         image_path = input('Enter your image location: ')
         return image_path
 
-    def get_ask_album_id_dialog_args(self, albums):
+    def get_ask_album_id_dialog_args(self, albums, no_album_msg):
         pass
 
     def ask_album_id(self, albums):
@@ -601,21 +641,21 @@ class KDEImgur(Imgur):
         ]
         return args
 
-    def get_auth_msg_dialog_args(self):
+    def get_auth_msg_dialog_args(self, auth_msg, auth_url):
         args = [
             'kdialog',
             '--msgbox',
-            self._auth_msg_with_url,
+            auth_msg + auth_url,
         ]
         return args
 
-    def get_enter_pin_dialog_args(self):
+    def get_enter_pin_dialog_args(self, token_msg):
         args = [
             'kdialog',
             '--title',
             'Input dialog',
             '--inputbox',
-            self._token_msg,
+            token_msg,
         ]
         return args
 
@@ -627,7 +667,7 @@ class KDEImgur(Imgur):
         ]
         return args
 
-    def get_ask_album_id_dialog_args(self, albums):
+    def get_ask_album_id_dialog_args(self, albums, no_album_msg):
         i = 1
         args = ['kdialog', '--menu', '"Choose the album"']
         for album in albums:
@@ -635,7 +675,7 @@ class KDEImgur(Imgur):
             args.append('{album[title]}({album[privacy]})'.format(album=album))
             i += 1
         args.append(str(i))
-        args.append(self._no_album_msg)
+        args.append(no_album_msg)
 
         return args
 
@@ -661,25 +701,25 @@ class MacImgur(Imgur):
         ]
         return args
 
-    def get_auth_msg_dialog_args(self):
+    def get_auth_msg_dialog_args(self, auth_msg, auth_url):
         args = [
             'osascript',
             '-e',
             (
                 'tell app "SystemUIServer" to display dialog '
                 '"{msg}" default answer "{link}" '
-                'with icon 1'.format(msg=self._auth_msg, link=self._auth_url)
+                'with icon 1'.format(msg=auth_msg, link=auth_url)
             ),
         ]
         return args
 
-    def get_enter_pin_dialog_args(self):
+    def get_enter_pin_dialog_args(self, token_msg):
         args = [
             'osascript',
             '-e',
             (
                 'tell app "SystemUIServer" to display dialog '
-                '"{msg}" default answer "" with icon 1'.format(msg=self._token_msg)
+                '"{msg}" default answer "" with icon 1'.format(msg=token_msg)
             ),
             '-e',
             'text returned of result',
@@ -694,7 +734,7 @@ class MacImgur(Imgur):
         ]
         return args
 
-    def get_ask_album_id_dialog_args(self, albums):
+    def get_ask_album_id_dialog_args(self, albums, no_album_msg):
         pass
 
     def ask_album_id(self, albums):
@@ -714,7 +754,11 @@ class MacImgur(Imgur):
                 'OK button name "Select" cancel button name "Quit"'.format(l=list_str[:-1])
             ),
         ]
-        choose_album_dialog = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        choose_album_dialog = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
         album_number = choose_album_dialog.communicate()[0].strip()
         album_number = album_number[:album_number.find(' ')]
         if album_number == '':
@@ -773,20 +817,20 @@ class ZenityImgur(Imgur):
         ]
         return args
 
-    def get_auth_msg_dialog_args(self):
+    def get_auth_msg_dialog_args(self, auth_msg, auth_url):
         args = [
             'zenity',
             '--entry',
-            '--text={msg}'.format(msg=self._auth_msg),
-            '--entry-text={link}'.format(link=self._auth_url),
+            '--text={msg}'.format(msg=auth_msg),
+            '--entry-text={link}'.format(link=auth_url),
         ]
         return args
 
-    def get_enter_pin_dialog_args(self):
+    def get_enter_pin_dialog_args(self, token_msg):
         args = [
             'zenity',
             '--entry',
-            '--text={msg}'.format(msg=self._token_msg),
+            '--text={msg}'.format(msg=token_msg),
         ]
         return args
 
@@ -797,7 +841,7 @@ class ZenityImgur(Imgur):
         ]
         return args
 
-    def get_ask_album_id_dialog_args(self, albums):
+    def get_ask_album_id_dialog_args(self, albums, no_album_msg):
         i = 1
         arg = [
             'zenity',
@@ -813,7 +857,7 @@ class ZenityImgur(Imgur):
             arg.append('{album[privacy]}'.format(album=album))
             i += 1
         arg.append(str(i))
-        arg.append(self._no_album_msg)
+        arg.append(no_album_msg)
         arg.append('public')
 
     def get_show_link_dialog_args(self, links):
