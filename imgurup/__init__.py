@@ -2,18 +2,18 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import os
+import sys
 import argparse
+import logging
+import subprocess
 import httplib
 import urllib
 import random
 import string
 import mimetypes
-import sys
 from ConfigParser import SafeConfigParser
 import json
-import logging
-import os
-import subprocess
 from abc import ABCMeta
 from abc import abstractmethod
 import time
@@ -94,7 +94,7 @@ class Imgur():
                           'you have to visit this URL in your browser '
                           'and copy the PIN code: \n')
         self._auth_msg_with_url = self._auth_msg + self._auth_url
-        self._token_msg = 'Enter PIN code displayed in the browser: '
+        self._enter_token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
 
     def retry(tries=2, delay=1):
@@ -163,7 +163,11 @@ class Imgur():
         '''
         args = self.get_error_dialog_args(msg)
         if args:
-            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
             p.communicate()
         logger.error(msg)
         sys.exit(1)
@@ -296,15 +300,15 @@ class Imgur():
         '''
         pass
 
-    def ask_pin(self):
+    def ask_pin(self, auth_msg, auth_url, enter_token_msg):
         '''
         Ask user for pin code
         Returns:
             pin code
         '''
         args = self.get_auth_msg_dialog_args(
-            self._auth_msg,
-            self._auth_url,
+            auth_msg,
+            auth_url
         )
         auth_msg_dialog = subprocess.Popen(
             args,
@@ -313,7 +317,7 @@ class Imgur():
         )
         auth_msg_dialog.communicate()
 
-        args = self.get_enter_pin_dialog_args(self._token_msg)
+        args = self.get_enter_pin_dialog_args(enter_token_msg)
         ask_pin_dialog = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -328,8 +332,15 @@ class Imgur():
         '''
         token_url = '/oauth2/token'
 
-        pin = self.ask_pin()
-        headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+        pin = self.ask_pin(
+            self._auth_msg,
+            self._auth_url,
+            self._enter_token_msg
+        )
+        headers = {
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/plain"
+        }
         self._request(
             'POST',
             token_url,
@@ -456,18 +467,19 @@ class Imgur():
         '''
         pass
 
-    def show_link(self, result):
+    def show_link(self, image_link, delete_hash):
         '''
         Show image link
         Args:
             result: Image upload response(json(dict))
         Returns:
-            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
+            list: A list include dialog command,
+                  ex: ['kdialog', '--msgbox', 'hi']
         '''
-        link = 'Link: {link}'.format(link=result['data']['link'].replace('\\', ''))
+        link = 'Link: {link}'.format(link=image_link.replace('\\', ''))
         links = (
             link + '\nDelete link: http://imgur.com/delete/' +
-            '{delete}'.format(delete=result['data']['deletehash'])
+            '{delete}'.format(delete=delete_hash)
         )
         args = self.get_show_link_dialog_args(links)
         show_link_dialog = subprocess.Popen(
@@ -580,7 +592,7 @@ class Imgur():
             result = self._get_json_response()
             if not self.is_success(result):
                 self.show_error_and_exit('Upload image error')
-        self.show_link(result)
+        self.show_link(result['data']['link'], result['data']['deletehash'])
 
 
 class CLIImgur(Imgur):
@@ -594,9 +606,9 @@ class CLIImgur(Imgur):
     def get_enter_pin_dialog_args(self, token_msg):
         pass
 
-    def ask_pin(self):
-        print(self._auth_msg_with_url)
-        pin = raw_input(self._token_msg)
+    def ask_pin(self, auth_msg, auth_url, enter_token_msg):
+        print(auth_msg + auth_url)
+        pin = raw_input(enter_token_msg)
         return pin
 
     def get_ask_image_path_dialog_args(self):
@@ -626,9 +638,9 @@ class CLIImgur(Imgur):
     def get_show_link_dialog_args(self):
         pass
 
-    def show_link(self, result):
-        print('Link: {link}'.format(link=result['data']['link'].replace('\\', '')))
-        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash']))
+    def show_link(self, image_link, delete_hash):
+        print('Link: {link}'.format(link=image_link.replace('\\', '')))
+        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=delete_hash))
 
 
 class KDEImgur(Imgur):
@@ -730,7 +742,10 @@ class MacImgur(Imgur):
         args = [
             'osascript',
             '-e',
-            'tell app "Finder" to POSIX path of (choose file with prompt "Choose Image:")',
+            (
+                'tell app "Finder" to POSIX path of '
+                '(choose file with prompt "Choose Image:")'
+            ),
         ]
         return args
 
@@ -749,8 +764,8 @@ class MacImgur(Imgur):
             'osascript',
             '-e',
             (
-                'tell app "Finder" to choose from list '
-                '{{{l}}} with title "Choose From The List" with prompt "PickOne" '
+                'tell app "Finder" to choose from list {{{l}}} '
+                'with title "Choose From The List" with prompt "PickOne" '
                 'OK button name "Select" cancel button name "Quit"'.format(l=list_str[:-1])
             ),
         ]
@@ -769,8 +784,8 @@ class MacImgur(Imgur):
     def get_show_link_dialog_args(self):
         pass
 
-    def show_link(self, result):
-        link = result['data']['link'].replace('\\', '')
+    def show_link(self, image_link, delete_hash):
+        link = image_link.replace('\\', '')
         args = [
             'osascript',
             '-e',
@@ -790,7 +805,7 @@ class MacImgur(Imgur):
         response = response[response.find(':') + 1:response.find(',')]
         print(response)
         if response == 'Show delete link':
-            delete_link = 'http://imgur.com/delete/{delete}'.format(delete=result['data']['deletehash'])
+            delete_link = 'http://imgur.com/delete/{delete}'.format(delete=delete_hash)
             args2 = [
                 'osascript',
                 '-e',
