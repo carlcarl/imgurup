@@ -21,7 +21,6 @@ from functools import wraps
 import math
 import shutil
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -885,6 +884,13 @@ class ZenityImgur(Imgur):
 
 
 def main():
+    formatter = logging.Formatter('%(levelname)s: %(message)s')
+    console = logging.StreamHandler(stream=sys.stdout)
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(formatter)
+    logger.addHandler(console)
+    logger.setLevel(logging.INFO)
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-f',
