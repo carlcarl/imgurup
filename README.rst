@@ -53,7 +53,7 @@ Development
 -----------
 
 
-LICENSE
+License
 -------
 Copyright (C) 2013 黃健瑋(Chien-Wei Huang)
 
