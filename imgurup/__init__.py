@@ -539,7 +539,7 @@ class Imgur():
         self._request('POST', url, body, headers)
         return self._get_json_response()
 
-    def upload(self, image_path=None, anonymous=True, album_id=None):
+    def upload(self, image_path=None, meta=None):
         '''
         Upload a image
         Args:
@@ -552,7 +552,7 @@ class Imgur():
         headers = {}
         if image_path is None:
             image_path = self.ask_image_path()
-        if anonymous:  # Anonymous account
+        if meta['anonymous']:  # Anonymous account
             print('Upload the image anonymously...')
             files = {'image': image_path}
             body, headers = self._encode_multipart_data(data, files)
@@ -564,34 +564,25 @@ class Imgur():
                 # tool, so call auth() to get tokens
                 self.auth()
                 self.write_tokens_to_config()
-            if album_id is None:  # Means user doesn't specify the album
+            if (meta['album_id'] is None) or meta['ask']:  # Means user doesn't specify the album
                 albums = self.request_album_list()
-                album_id = self.ask_album_id(albums)
-                if album_id is not None:
+                meta['album_id'] = self.ask_album_id(albums)
+                if meta['album_id'] is not None:
                     logger.info('Upload the image to the album...')
-                    data['album_id'] = album_id
+                    data['album_id'] = meta['album_id']
                 else:
                     # If it's None, means user doesn't want to upload to any album
                     logger.info('Upload the image...')
             else:
                 logger.info('Upload the image to the album...')
-                data['album_id'] = album_id
+                data['album_id'] = meta['album_id']
 
             files = {'image': image_path}
             body, headers = self._encode_multipart_data(data, files)
             headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
-        self._request('POST', url, body, headers)
-        result = self._get_json_response()
-        if not self.is_success(result):
-            logger.info('Reauthorize...')
-            self.request_new_tokens_and_update()
-            self.write_tokens_to_config()
-            self._request('POST', url, body, headers)
-            result = self._get_json_response()
-            if not self.is_success(result):
-                self.show_error_and_exit('Upload image error')
-        self.show_link(result['data']['link'], result['data']['deletehash'])
+        result = self.request_upload_image(url, body, headers)
+        self.show_link(result['link'], result['deletehash'])
 
 
 class CLIImgur(Imgur):
@@ -894,6 +885,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-f',
+        nargs='*',
+        default=None,
         help='The image you want to upload',
         metavar='<image path>'
     )
@@ -903,6 +896,11 @@ def main():
         default=None,
         help='The album id you want your image to be uploaded to',
         metavar='<album id>'
+    )
+    parser.add_argument(
+        '-q',
+        action='store_true',
+        help='Choose album with every file'
     )
     parser.add_argument(
         '-g',
@@ -927,7 +925,14 @@ def main():
                      os.path.expanduser('~/.local/share/applications/'))
         return
     imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(args.g))
-    imgur.upload(args.f, args.n, args.d)
+
+    meta = {
+        'album_id': args.d,
+        'ask': args.q,
+        'anonymous': args.n,
+    }
+    for f in args.f:
+        imgur.upload(f, meta)
 
 
 if __name__ == '__main__':
