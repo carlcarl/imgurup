@@ -887,7 +887,7 @@ def main():
         '-f',
         nargs='*',
         default=None,
-        help='The image you want to upload',
+        help='The images you want to upload',
         metavar='<image path>'
     )
     parser.add_argument(
@@ -900,7 +900,7 @@ def main():
     parser.add_argument(
         '-q',
         action='store_true',
-        help='Choose album with every file'
+        help='Choose album with each file'
     )
     parser.add_argument(
         '-g',
@@ -916,7 +916,7 @@ def main():
         '-s',
         action='store_true',
         help='Add command in the context menu of file manager'
-        '(Now only support KDE and Gnome)'
+        '(Support KDE and Gnome)'
     )
     args = parser.parse_args()
 
