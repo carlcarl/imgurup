@@ -916,7 +916,7 @@ def main():
         '-s',
         action='store_true',
         help='Add command in the context menu of file manager'
-        '(Now only support KDE)'
+        '(Now only support KDE and Gnome)'
     )
     args = parser.parse_args()
 
