@@ -886,7 +886,7 @@ def main():
     parser.add_argument(
         '-f',
         nargs='*',
-        default=None,
+        default=[None],
         help='The images you want to upload',
         metavar='<image path>'
     )
