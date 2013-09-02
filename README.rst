@@ -50,9 +50,74 @@ Todo
 ----
 * None
 
-Development
------------
+Customize example
+-----------------
 
+::
+
+    from imgurup import Imgur
+
+
+    class MyImgur(Imgur):
+
+        def get_error_dialog_args(self, msg='Error'):
+            args = [
+                'zenity',
+                '--error',
+                '--text={text}'.format(text=msg),
+            ]
+            return args
+
+        def get_auth_msg_dialog_args(self, auth_msg, auth_url):
+            args = [
+                'zenity',
+                '--entry',
+                '--text={msg}'.format(msg=auth_msg),
+                '--entry-text={link}'.format(link=auth_url),
+            ]
+            return args
+
+        def get_enter_pin_dialog_args(self, token_msg):
+            args = [
+                'zenity',
+                '--entry',
+                '--text={msg}'.format(msg=token_msg),
+            ]
+            return args
+
+        def get_ask_image_path_dialog_args(self):
+            args = [
+                'zenity',
+                '--file-selection',
+            ]
+            return args
+
+        def get_ask_album_id_dialog_args(self, albums, no_album_msg):
+            i = 1
+            arg = [
+                'zenity',
+                '--list',
+                '--text="Choose the album"',
+                '--column=No.',
+                '--column=Album name',
+                '--column=Privacy',
+            ]
+            for album in albums:
+                arg.append(str(i))
+                arg.append('{album[title]}'.format(album=album))
+                arg.append('{album[privacy]}'.format(album=album))
+                i += 1
+            arg.append(str(i))
+            arg.append(no_album_msg)
+            arg.append('public')
+
+        def get_show_link_dialog_args(self, links):
+            args = [
+                'zenity',
+                '--info',
+                '--text={links}'.format(links=links),
+            ]
+            return args
 
 License
 -------
