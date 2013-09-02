@@ -35,12 +35,12 @@ Optional arguments:
 ::
 
 	-h, --help       show this help message and exit
-    -f [<image path> [<image path> ...]] The images you want to upload
+	-f [<image path> [<image path> ...]] The images you want to upload
 	-d [<album id>]  The album id you want your image to be uploaded to
 	-g               GUI mode
 	-n               Anonymous upload
 	-s               Add command in the context menu of file manager(Support Gnome and KDE)
-    -q               Choose album with each file
+	-q               Choose album with each file
 
 Packcage Dependency
 -------------------
