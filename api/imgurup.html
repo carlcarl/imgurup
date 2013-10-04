@@ -1,0 +1,710 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>imgurup Package &mdash; imgurup 1.5.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="imgurup 1.5.1 documentation" href="../index.html" />
+    <link rel="up" title="imgurup" href="modules.html" />
+    <link rel="prev" title="imgurup" href="modules.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="imgurup"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">imgurup 1.5.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" accesskey="U">imgurup</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="imgurup-package">
+<h1>imgurup Package<a class="headerlink" href="#imgurup-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">imgurup</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-imgurup.__init__"></span><dl class="class">
+<dt id="imgurup.__init__.CLIImgur">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">CLIImgur</tt><big>(</big><em>url='api.imgur.com'</em>, <em>client_id='55080e3fd8d0644'</em>, <em>client_secret='d021464e1b3244d6f73749b94d17916cf361da24'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#imgurup.__init__.Imgur" title="imgurup.__init__.Imgur"><tt class="xref py py-class docutils literal"><span class="pre">imgurup.__init__.Imgur</span></tt></a></p>
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.ask_album_id">
+<tt class="descname">ask_album_id</tt><big>(</big><em>albums</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.ask_album_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.ask_image_path">
+<tt class="descname">ask_image_path</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.ask_image_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.ask_pin">
+<tt class="descname">ask_pin</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em>, <em>enter_token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.ask_pin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_ask_album_id_dialog_args">
+<tt class="descname">get_ask_album_id_dialog_args</tt><big>(</big><em>albums</em>, <em>no_album_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_ask_album_id_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_ask_image_path_dialog_args">
+<tt class="descname">get_ask_image_path_dialog_args</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_ask_image_path_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_auth_msg_dialog_args">
+<tt class="descname">get_auth_msg_dialog_args</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_auth_msg_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_enter_pin_dialog_args">
+<tt class="descname">get_enter_pin_dialog_args</tt><big>(</big><em>token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_enter_pin_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_error_dialog_args">
+<tt class="descname">get_error_dialog_args</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_error_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.get_show_link_dialog_args">
+<tt class="descname">get_show_link_dialog_args</tt><big>(</big><em>links</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.get_show_link_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.CLIImgur.show_link">
+<tt class="descname">show_link</tt><big>(</big><em>image_link</em>, <em>delete_hash</em><big>)</big><a class="headerlink" href="#imgurup.__init__.CLIImgur.show_link" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="imgurup.__init__.Imgur">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">Imgur</tt><big>(</big><em>url='api.imgur.com'</em>, <em>client_id='55080e3fd8d0644'</em>, <em>client_secret='d021464e1b3244d6f73749b94d17916cf361da24'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="imgurup.__init__.Imgur.CONFIG_PATH">
+<tt class="descname">CONFIG_PATH</tt><em class="property"> = '/Users/carlcarl/.imgurup.conf'</em><a class="headerlink" href="#imgurup.__init__.Imgur.CONFIG_PATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.ask_album_id">
+<tt class="descname">ask_album_id</tt><big>(</big><em>albums</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.ask_album_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask user to choose a album to upload or not belong to any album</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>albums</strong> (<em>list of dict</em>) &#8211; Albums list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The id of the album</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.ask_image_path">
+<tt class="descname">ask_image_path</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.ask_image_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a file dialog and prompt the user to select a image</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">image path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.ask_pin">
+<tt class="descname">ask_pin</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em>, <em>enter_token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.ask_pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask user for pin code</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>auth_msg</strong> (<em>str</em>) &#8211; Authorization message</li>
+<li><strong>auth_url</strong> (<em>str</em>) &#8211; Authorization url</li>
+<li><strong>enter_token_msg</strong> (<em>str</em>) &#8211; Prompt token message</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">pin code</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.auth">
+<tt class="descname">auth</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Authorization</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_ask_album_id_dialog_args">
+<tt class="descname">get_ask_album_id_dialog_args</tt><big>(</big><em>albums</em>, <em>no_album_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_ask_album_id_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of choose album dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>albums</strong> (<em>list of dict</em>) &#8211; Albums list</li>
+<li><strong>no_album_msg</strong> &#8211; <cite>Not belong to any album</cite> message</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list include dialog command</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_ask_image_path_dialog_args">
+<tt class="descname">get_ask_image_path_dialog_args</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_ask_image_path_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of file dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command, ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hi&#8217;]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_auth_msg_dialog_args">
+<tt class="descname">get_auth_msg_dialog_args</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_auth_msg_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of show authorization message dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>auth_msg</strong> (<em>str</em>) &#8211; Authorization message</li>
+<li><strong>auth_url</strong> (<em>str</em>) &#8211; Authorization url</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list include dialog command</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_enter_pin_dialog_args">
+<tt class="descname">get_enter_pin_dialog_args</tt><big>(</big><em>token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_enter_pin_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of enter pin dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>token_msg</strong> (<em>str</em>) &#8211; Enter token message</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_error_dialog_args">
+<tt class="descname">get_error_dialog_args</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_error_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of display error dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>str</em>) &#8211; Error message</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command, ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hello&#8217;]</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.get_show_link_dialog_args">
+<tt class="descname">get_show_link_dialog_args</tt><big>(</big><em>links</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.get_show_link_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the subprocess args of show link dialog</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>links</strong> (<em>str</em>) &#8211; String of the image link and delete link</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.is_success">
+<tt class="descname">is_success</tt><big>(</big><em>response</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.is_success" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the value of the result is success or not</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>response</strong> (<em>dict</em>) &#8211; The result return from the server</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if success, else False</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.request_album_list">
+<tt class="descname">request_album_list</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_album_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request album list with the account</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>account</strong> (<em>str</em>) &#8211; The account name, &#8216;me&#8217; means yourself</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Response of requesting albums list (json)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.request_new_tokens">
+<tt class="descname">request_new_tokens</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_new_tokens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request new tokens</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">json tokens</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.request_new_tokens_and_update">
+<tt class="descname">request_new_tokens_and_update</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_new_tokens_and_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request and update the access token and refresh token</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.request_upload_image">
+<tt class="descname">request_upload_image</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_upload_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request upload image</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>url</strong> (<em>str</em>) &#8211; Upload url</li>
+<li><strong>body</strong> (<em>str</em>) &#8211; The content string of the request</li>
+<li><strong>headers</strong> (<em>dict</em>) &#8211; The headers of the request</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Response of upload image</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.retry">
+<tt class="descname">retry</tt><big>(</big><em>tries=2</em>, <em>delay=1</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.retry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retry calling the decorated function using an exponential backoff.</p>
+<p><a class="reference external" href="http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/">http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/</a>
+original from: <a class="reference external" href="http://wiki.python.org/moin/PythonDecoratorLibrary#Retry">http://wiki.python.org/moin/PythonDecoratorLibrary#Retry</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tries</strong> (<em>int</em>) &#8211; number of times to try (not retry) before giving up</li>
+<li><strong>delay</strong> (<em>int</em>) &#8211; initial delay between retries in seconds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.set_tokens_using_config">
+<tt class="descname">set_tokens_using_config</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.set_tokens_using_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the token value from the config file
+Set tokens to None if can&#8217;t be found in config</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.show_error_and_exit">
+<tt class="descname">show_error_and_exit</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.show_error_and_exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display error message and exit the program</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>str</em>) &#8211; Error message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.show_link">
+<tt class="descname">show_link</tt><big>(</big><em>image_link</em>, <em>delete_hash</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.show_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show image link</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_link</strong> (<em>str</em>) &#8211; Image link</li>
+<li><strong>delete_hash</strong> (<em>str</em>) &#8211; Image delete hash string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.upload">
+<tt class="descname">upload</tt><big>(</big><em>image_path=None</em>, <em>meta=None</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upload a image</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image_path</strong> (<em>str</em>) &#8211; The path of the image you want to upload</li>
+<li><strong>meta</strong> (<em>dict</em>) &#8211; Meta information of anonymous and album id</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.Imgur.write_tokens_to_config">
+<tt class="descname">write_tokens_to_config</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.write_tokens_to_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write token value to the config
+There will be maybe more setting needed to be written to config
+So I just pass <cite>result</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="imgurup.__init__.ImgurFactory">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">ImgurFactory</tt><a class="headerlink" href="#imgurup.__init__.ImgurFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to produce imgur instance.
+You can call <cite>detect_env</cite> to auto get a suitable imgur class,
+and use it as argument in <cite>get_imgur</cite>.
+ex: <cite>imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))</cite>
+you can also manually choose a imgur class, ex: <cite>imgur = ImgurFactory.get_imgur(KDEImgur)</cite></p>
+<dl class="staticmethod">
+<dt id="imgurup.__init__.ImgurFactory.detect_env">
+<em class="property">static </em><tt class="descname">detect_env</tt><big>(</big><em>is_gui=True</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ImgurFactory.detect_env" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect environment</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>is_gui</strong> (<em>bool</em>) &#8211; If False, choose CLI, otherwise detect settings and choose a GUI mode</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Subclass of Imgur</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="imgurup.__init__.ImgurFactory.get_imgur">
+<em class="property">static </em><tt class="descname">get_imgur</tt><big>(</big><em>imgur_class</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ImgurFactory.get_imgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get imgur instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>imgur_class</strong> (<em>type</em>) &#8211; The subclass name of Imgur</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Imgur instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="imgurup.__init__.KDEImgur">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">KDEImgur</tt><big>(</big><em>url='api.imgur.com'</em>, <em>client_id='55080e3fd8d0644'</em>, <em>client_secret='d021464e1b3244d6f73749b94d17916cf361da24'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#imgurup.__init__.Imgur" title="imgurup.__init__.Imgur"><tt class="xref py py-class docutils literal"><span class="pre">imgurup.__init__.Imgur</span></tt></a></p>
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_ask_album_id_dialog_args">
+<tt class="descname">get_ask_album_id_dialog_args</tt><big>(</big><em>albums</em>, <em>no_album_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_ask_album_id_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_ask_image_path_dialog_args">
+<tt class="descname">get_ask_image_path_dialog_args</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_ask_image_path_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_auth_msg_dialog_args">
+<tt class="descname">get_auth_msg_dialog_args</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_auth_msg_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_enter_pin_dialog_args">
+<tt class="descname">get_enter_pin_dialog_args</tt><big>(</big><em>token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_enter_pin_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_error_dialog_args">
+<tt class="descname">get_error_dialog_args</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_error_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.KDEImgur.get_show_link_dialog_args">
+<tt class="descname">get_show_link_dialog_args</tt><big>(</big><em>links</em><big>)</big><a class="headerlink" href="#imgurup.__init__.KDEImgur.get_show_link_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="imgurup.__init__.MacImgur">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">MacImgur</tt><big>(</big><em>url='api.imgur.com'</em>, <em>client_id='55080e3fd8d0644'</em>, <em>client_secret='d021464e1b3244d6f73749b94d17916cf361da24'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#imgurup.__init__.Imgur" title="imgurup.__init__.Imgur"><tt class="xref py py-class docutils literal"><span class="pre">imgurup.__init__.Imgur</span></tt></a></p>
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.ask_album_id">
+<tt class="descname">ask_album_id</tt><big>(</big><em>albums</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.ask_album_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_ask_album_id_dialog_args">
+<tt class="descname">get_ask_album_id_dialog_args</tt><big>(</big><em>albums</em>, <em>no_album_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_ask_album_id_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_ask_image_path_dialog_args">
+<tt class="descname">get_ask_image_path_dialog_args</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_ask_image_path_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_auth_msg_dialog_args">
+<tt class="descname">get_auth_msg_dialog_args</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_auth_msg_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_enter_pin_dialog_args">
+<tt class="descname">get_enter_pin_dialog_args</tt><big>(</big><em>token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_enter_pin_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_error_dialog_args">
+<tt class="descname">get_error_dialog_args</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_error_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.get_show_link_dialog_args">
+<tt class="descname">get_show_link_dialog_args</tt><big>(</big><em>links</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.get_show_link_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.MacImgur.show_link">
+<tt class="descname">show_link</tt><big>(</big><em>image_link</em>, <em>delete_hash</em><big>)</big><a class="headerlink" href="#imgurup.__init__.MacImgur.show_link" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="imgurup.__init__.ZenityImgur">
+<em class="property">class </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">ZenityImgur</tt><big>(</big><em>url='api.imgur.com'</em>, <em>client_id='55080e3fd8d0644'</em>, <em>client_secret='d021464e1b3244d6f73749b94d17916cf361da24'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#imgurup.__init__.Imgur" title="imgurup.__init__.Imgur"><tt class="xref py py-class docutils literal"><span class="pre">imgurup.__init__.Imgur</span></tt></a></p>
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_ask_album_id_dialog_args">
+<tt class="descname">get_ask_album_id_dialog_args</tt><big>(</big><em>albums</em>, <em>no_album_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_ask_album_id_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_ask_image_path_dialog_args">
+<tt class="descname">get_ask_image_path_dialog_args</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_ask_image_path_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_auth_msg_dialog_args">
+<tt class="descname">get_auth_msg_dialog_args</tt><big>(</big><em>auth_msg</em>, <em>auth_url</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_auth_msg_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_enter_pin_dialog_args">
+<tt class="descname">get_enter_pin_dialog_args</tt><big>(</big><em>token_msg</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_enter_pin_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_error_dialog_args">
+<tt class="descname">get_error_dialog_args</tt><big>(</big><em>msg='Error'</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_error_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="imgurup.__init__.ZenityImgur.get_show_link_dialog_args">
+<tt class="descname">get_show_link_dialog_args</tt><big>(</big><em>links</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ZenityImgur.get_show_link_dialog_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="imgurup.__init__.main">
+<tt class="descclassname">imgurup.__init__.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">imgurup Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">imgurup</span></tt> Package</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modules.html"
+                        title="previous chapter">imgurup</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/api/imgurup.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="imgurup"
+             >previous</a> |</li>
+        <li><a href="../index.html">imgurup 1.5.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >imgurup</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Chien-Wei Huang.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
