@@ -12,20 +12,20 @@ import urllib
 import random
 import string
 import mimetypes
+import ConfigParser
 from ConfigParser import SafeConfigParser
 import json
 from abc import ABCMeta
 from abc import abstractmethod
 import time
 from functools import wraps
-import math
 import shutil
 
 logger = logging.getLogger(__name__)
 
 
 class ImgurFactory:
-    '''
+    """
     Used to produce imgur instance.
     You can call `detect_env` to auto get a suitable imgur class,
     and use it as argument in `get_imgur`.
@@ -34,17 +34,20 @@ class ImgurFactory:
 
     you can also manually choose a imgur class, ex:
         imgur = ImgurFactory.get_imgur(KDEImgur)
-    '''
+    """
+
+    def __init__(self):
+        pass
+
     @staticmethod
     def detect_env(is_gui=True):
-        '''
-        Detect environment
-        Args:
-            is_gui: If False, choose CLI,
-                    otherwise detect settings and choose a GUI mode
-        Returns:
-            Subclass of Imgur
-        '''
+        """Detect environment
+
+        :param is_gui: If False, choose CLI, otherwise detect settings and choose a GUI mode
+        :type is_gui: bool
+        :return: Subclass of Imgur
+        :rtype: type
+        """
         if is_gui and os.environ.get('KDE_FULL_SESSION') == 'true':
             return KDEImgur
         elif is_gui and sys.platform == 'darwin':
@@ -58,13 +61,12 @@ class ImgurFactory:
 
     @staticmethod
     def get_imgur(imgur_class):
-        '''
-        Get imgur instance
-        Args:
-            imgur_class: The subclass name of Imgur
-        Returns:
-            imgur instance
-        '''
+        """Get imgur instance
+
+        :param imgur_class: The subclass name of Imgur
+        :type imgur_class: type
+        :return: Imgur instance
+        """
         return imgur_class()
 
 
@@ -75,10 +77,9 @@ class Imgur():
     def __init__(self, url='api.imgur.com',
                  client_id='55080e3fd8d0644',
                  client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
-        '''
-        Initialize connection, client_id and client_secret
+        """Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
-        '''
+        """
         self._connect = httplib.HTTPSConnection(url)
         self._client_id = client_id
         self._client_secret = client_secret
@@ -102,16 +103,12 @@ class Imgur():
         http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
         original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
 
-        :param ExceptionToCheck: the exception to check. may be a tuple of
-            exceptions to check
-        :type ExceptionToCheck: Exception or tuple
         :param tries: number of times to try (not retry) before giving up
         :type tries: int
         :param delay: initial delay between retries in seconds
         :type delay: int
         """
 
-        tries = math.floor(tries)
         if tries < 0:
             raise ValueError("tries must be 0 or greater")
 
@@ -122,8 +119,8 @@ class Imgur():
 
             @wraps(f)
             def f_retry(self, *args, **kwargs):
-                mtries, mdelay = tries, delay
-                while mtries > 1:
+                _tries, _delay = tries, delay
+                while _tries > 1:
                     result = f(self, *args, **kwargs)
                     if self.is_success(result):
                         return result['data']
@@ -131,8 +128,8 @@ class Imgur():
                         logger.info('Reauthorize...')
                         self.request_new_tokens_and_update()
                         self.write_tokens_to_config()
-                        time.sleep(mdelay)
-                        mtries -= 1
+                        time.sleep(_delay)
+                        _tries -= 1
                 result = f(self, *args, **kwargs)
                 if self.is_success(result):
                     return result['data']
@@ -145,21 +142,21 @@ class Imgur():
 
     @abstractmethod
     def get_error_dialog_args(self, msg='Error'):
-        '''
-        Retrun the subprocess args of display error dialog
-        Args:
-            msg: Error message
-        Returns:
-            A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
-        '''
+        """Return the subprocess args of display error dialog
+
+        :param msg: Error message
+        :type msg: str
+        :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+        :rtype: list
+        """
         pass
 
     def show_error_and_exit(self, msg='Error'):
-        '''
-        Display error message and exit the program
-        Args:
-            msg: Error message
-        '''
+        """Display error message and exit the program
+
+        :param msg: Error message
+        :type msg: str
+        """
         args = self.get_error_dialog_args(msg)
         if args:
             p = subprocess.Popen(
@@ -172,45 +169,55 @@ class Imgur():
         sys.exit(1)
 
     def set_tokens_using_config(self):
-        '''
-        Read the token valuse from the config file
+        """Read the token value from the config file
         Set tokens to None if can't be found in config
-        '''
+        """
         parser = SafeConfigParser()
         parser.read(self.CONFIG_PATH)
 
         try:
             self._access_token = parser.get('Token', 'access_token')
-        except:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             logger.warning('Can\'t find access token, set to empty')
             self._access_token = None
 
         try:
             self._refresh_token = parser.get('Token', 'refresh_token')
-        except:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
     def _request(self, method, url, body, headers):
-        return self._connect.request(method, url, body, headers)
+        """Private API for request
+
+        :param method: `GET` or `POST`
+        :type method: str
+        :param url: url
+        :type url: str
+        :param body: Body part of the request
+        :type body: str or None
+        :param headers: The header part of the request
+        :type headers: dict
+        """
+        self._connect.request(method, url, body, headers)
 
     def _get_json_response(self):
-        '''
-        Get the json response of request
-        Returns:
-            Json response
-        '''
+        """Get the json response of request
+
+        :return: Json response
+        :rtype: dict
+        """
         return json.loads(self._connect.getresponse().read().decode('utf-8'))
 
     @retry()
     def request_album_list(self, account='me'):
-        '''
-        Request album list with the account
-        Args:
-            account: The account name, 'me' means yourself
-        Returns:
-            Response of requesting albums list (json)
-        '''
+        """Request album list with the account
+
+        :param account: The account name, 'me' means yourself
+        :type account: str
+        :return: Response of requesting albums list (json)
+        :rtype: list of dict
+        """
         url = '/3/account/{account}/albums'.format(account=account)
 
         if account == 'me':
@@ -235,11 +242,11 @@ class Imgur():
         return self._get_json_response()
 
     def request_new_tokens(self):
-        '''
-        Request new tokens
-        Returns:
-            Tokens (dict type with json)
-        '''
+        """Request new tokens
+
+        :return: json tokens
+        :rtype: dict
+        """
         url = '/oauth2/token'
         headers = {
             "Content-type": "application/x-www-form-urlencoded",
@@ -257,9 +264,8 @@ class Imgur():
         return self._get_json_response()
 
     def request_new_tokens_and_update(self):
-        '''
-        Request and update the access token and refresh token
-        '''
+        """Request and update the access token and refresh token
+        """
 
         if self._refresh_token is None:
             self.set_tokens_using_config()
@@ -278,33 +284,40 @@ class Imgur():
 
     @abstractmethod
     def get_auth_msg_dialog_args(self, auth_msg, auth_url):
-        '''
-        Retrun the subprocess args of show authorization message dialog
-        Args:
-            auth_msg: Authorization message
-            auth_url: Authorization url
-        Returns:
-            A list include dialog command
-        '''
+        """Return the subprocess args of show authorization message dialog
+
+        :param auth_msg: Authorization message
+        :type auth_msg: str
+        :param auth_url: Authorization url
+        :type auth_url: str
+        :return: A list include dialog command
+        :rtype: list
+        """
         pass
 
     @abstractmethod
     def get_enter_pin_dialog_args(self, token_msg):
-        '''
-        Retrun the subprocess args of enter pin dialog
-        Args:
-            token_msg: Enter token message
-        Returns:
-            A list include dialog command
-        '''
+        """Return the subprocess args of enter pin dialog
+
+        :param token_msg: Enter token message
+        :type token_msg: str
+        :return: A list include dialog command
+        :rtype: list
+        """
         pass
 
     def ask_pin(self, auth_msg, auth_url, enter_token_msg):
-        '''
-        Ask user for pin code
-        Returns:
-            pin code
-        '''
+        """Ask user for pin code
+
+        :param auth_msg: Authorization message
+        :type auth_msg: str
+        :param auth_url: Authorization url
+        :type auth_url: str
+        :param enter_token_msg: Prompt token message
+        :type enter_token_msg: str
+        :return: pin code
+        :rtype: str
+        """
         args = self.get_auth_msg_dialog_args(
             auth_msg,
             auth_url
@@ -326,9 +339,8 @@ class Imgur():
         return pin
 
     def auth(self):
-        '''
-        Authorization
-        '''
+        """Authorization
+        """
         token_url = '/oauth2/token'
 
         pin = self.ask_pin(
@@ -353,20 +365,20 @@ class Imgur():
             headers
         )
         result = self._get_json_response()
-        if (self.is_success(result)):
+        if self.is_success(result):
             self._access_token = result['access_token']
             self._refresh_token = result['refresh_token']
         else:
             self.show_error_and_exit('Authorization error')
 
     def is_success(self, response):
-        '''
-        Check the value of the result is success or not
-        Args:
-            result: The result return from the server
-        Returns:
-            True if success, else False
-        '''
+        """Check the value of the result is success or not
+
+        :param response: The result return from the server
+        :type response: dict
+        :return: True if success, else False
+        :rtype: bool
+        """
         if ('success' in response) and (not response['success']):
             logger.info(response['data']['error'])
             logger.debug(json.dumps(response))
@@ -374,14 +386,10 @@ class Imgur():
         return True
 
     def write_tokens_to_config(self):
-        '''
-        Write token value to the config
+        """Write token value to the config
         There will be maybe more setting needed to be written to config
         So I just pass `result`
-        Args:
-            result: The result return from the server
-            config: The name of the config file
-        '''
+        """
         logger.debug('Access token: %s', self._access_token)
         logger.debug('Refresh token: %s', self._refresh_token)
 
@@ -396,19 +404,19 @@ class Imgur():
 
     @abstractmethod
     def get_ask_image_path_dialog_args(self):
-        '''
-        Retrun the subprocess args of file dialog
-        Returns:
-            list: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
-        '''
+        """Return the subprocess args of file dialog
+
+        :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
+        :rtype: list
+        """
         pass
 
     def ask_image_path(self):
-        '''
-        Display a file dialog and prompt the user to select a image
-        Returns:
-            image_path: A string
-        '''
+        """Display a file dialog and prompt the user to select a image
+
+        :return: image path
+        :rtype: str
+        """
         args = self.get_ask_image_path_dialog_args()
         ask_image_path_dialog = subprocess.Popen(
             args,
@@ -422,26 +430,37 @@ class Imgur():
         return image_path
 
     def _get_album_id(self, data_map, album_number):
+        """Get the album id from the list
+
+        :param data_map: Albums list
+        :type data_map: list of dict
+        :param album_number: The album NO.
+        :type album_number: int
+        :return: Album id
+        :rtype: str
+        """
         return data_map[album_number - 1]['id']
 
     @abstractmethod
     def get_ask_album_id_dialog_args(self, albums, no_album_msg):
-        '''
-        Retrun the subprocess args of choose album dialog
-        Args:
-            albums: Album list
-            no_album_msg: The string of no upload to any album
-        Returns:
-            A list include dialog command
-        '''
+        """Return the subprocess args of choose album dialog
+
+        :param albums: Albums list
+        :type albums: list of dict
+        :param no_album_msg: `Not belong to any album` message
+        :return: A list include dialog command
+        :rtype: list
+        """
         pass
 
     def ask_album_id(self, albums):
-        '''
-        Ask user to choose a album to upload or not belong to any album
-        Returns:
-            album_id: The id of the album
-        '''
+        """Ask user to choose a album to upload or not belong to any album
+
+        :param albums: Albums list
+        :type albums: list of dict
+        :return: The id of the album
+        :rtype: str
+        """
         args = self.get_ask_album_id_dialog_args(albums, self._no_album_msg)
         choose_album_dialog = subprocess.Popen(
             args,
@@ -459,22 +478,23 @@ class Imgur():
 
     @abstractmethod
     def get_show_link_dialog_args(self, links):
-        '''
-        Retrun the subprocess args of show link dialog
-        Returns:
+        """Return the subprocess args of show link dialog
 
-        '''
+        :param links: String of the image link and delete link
+        :type links: str
+        :return: A list include dialog command
+        :rtype: list
+        """
         pass
 
     def show_link(self, image_link, delete_hash):
-        '''
-        Show image link
-        Args:
-            result: Image upload response(json(dict))
-        Returns:
-            list: A list include dialog command,
-                  ex: ['kdialog', '--msgbox', 'hi']
-        '''
+        """Show image link
+
+        :param image_link: Image link
+        :type image_link: str
+        :param delete_hash: Image delete hash string
+        :type delete_hash: str
+        """
         link = 'Link: {link}'.format(link=image_link.replace('\\', ''))
         links = (
             link + '\nDelete link: http://imgur.com/delete/' +
@@ -489,9 +509,8 @@ class Imgur():
         show_link_dialog.communicate()
 
     def _encode_multipart_data(self, data, files):
-        '''
-        From http://stackoverflow.com/questions/68477
-        '''
+        """From http://stackoverflow.com/questions/68477
+        """
 
         def random_string(length):
             return ''.join(random.choice(string.letters) for ii in range(length + 1))
@@ -527,26 +546,29 @@ class Imgur():
 
     @retry()
     def request_upload_image(self, url, body, headers):
-        '''
-        Request upload image
-        Args:
-            url: Url string
-            body: The content string of the request
-            headers: The headers of the request (dict)
-        Returns:
-            Response of upload image
-        '''
+        """Request upload image
+
+        :param url: Upload url
+        :type url: str
+        :param body: The content string of the request
+        :type body: str
+        :param headers: The headers of the request
+        :type headers: dict
+        :return: Response of upload image
+        :rtype: dict
+        """
         self._request('POST', url, body, headers)
         return self._get_json_response()
 
     def upload(self, image_path=None, meta=None):
-        '''
-        Upload a image
-        Args:
-            image_path: The path of the image you want to upload
-            anonymous: True or False
-            album_id: The id of the album
-        '''
+        """Upload a image
+
+        :param image_path: The path of the image you want to upload
+        :type image_path: str
+        :param meta: Meta information of anonymous and album id
+        :type meta: dict
+        :return:
+        """
         url = '/3/image'
         data = {}
         headers = {}
@@ -625,7 +647,7 @@ class CLIImgur(Imgur):
         # Return album id, number select start from 1, so minus 1
         return self._get_album_id(data_map, album_number)
 
-    def get_show_link_dialog_args(self):
+    def get_show_link_dialog_args(self, links):
         pass
 
     def show_link(self, image_link, delete_hash):
@@ -771,7 +793,7 @@ class MacImgur(Imgur):
         album_number = int(album_number)
         return self._get_album_id(data_map, album_number)
 
-    def get_show_link_dialog_args(self):
+    def get_show_link_dialog_args(self, links):
         pass
 
     def show_link(self, image_link, delete_hash):
