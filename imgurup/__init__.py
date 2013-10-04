@@ -25,15 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 class ImgurFactory:
-    """
-    Used to produce imgur instance.
+    """Used to produce imgur instance.
     You can call `detect_env` to auto get a suitable imgur class,
     and use it as argument in `get_imgur`.
-    ex:
-        imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))
-
-    you can also manually choose a imgur class, ex:
-        imgur = ImgurFactory.get_imgur(KDEImgur)
+    ex: `imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))`
+    you can also manually choose a imgur class, ex: `imgur = ImgurFactory.get_imgur(KDEImgur)`
     """
 
     def __init__(self):
