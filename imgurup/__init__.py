@@ -223,7 +223,8 @@ class Imgur():
                 self.set_tokens_using_config()
             logger.info('Get album list with access token')
             logger.debug(
-                'Access token: {token}'.format(token=self._access_token)
+                'Access token: %s',
+                self._access_token
             )
             headers = {
                 'Authorization': 'Bearer {token}'.format(token=self._access_token)
