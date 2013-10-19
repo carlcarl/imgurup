@@ -18,7 +18,6 @@ import json
 from abc import ABCMeta
 from abc import abstractmethod
 import time
-from functools import wraps
 import shutil
 
 logger = logging.getLogger(__name__)
@@ -112,23 +111,16 @@ class Imgur():
             raise ValueError("delay must be greater than 0")
 
         def deco_retry(f):
-
-            @wraps(f)
             def f_retry(self, *args, **kwargs):
-                _tries, _delay = tries, delay
-                while _tries > 1:
+                for attempt in range(tries):
                     result = f(self, *args, **kwargs)
                     if self.is_success(result):
                         return result['data']
                     else:
-                        logger.info('Reauthorize...')
+                        logger.info('reauthorize...')
                         self.request_new_tokens_and_update()
                         self.write_tokens_to_config()
-                        time.sleep(_delay)
-                        _tries -= 1
-                result = f(self, *args, **kwargs)
-                if self.is_success(result):
-                    return result['data']
+                        time.sleep(delay)
                 else:
                     self.show_error_and_exit(
                         'Error in {function}'.format(function=f.__name__)
