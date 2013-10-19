@@ -65,6 +65,10 @@ class ImgurFactory:
         return imgur_class()
 
 
+class ImgurError(Exception):
+    pass
+
+
 class Imgur():
     __metaclass__ = ABCMeta
     CONFIG_PATH = os.path.expanduser("~/.imgurup.conf")
@@ -92,7 +96,7 @@ class Imgur():
         self._enter_token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
 
-    def retry(tries=2, delay=1):
+    def retry(tries=2, delay=1, errors=(ImgurError, httplib.BadStatusLine)):
         """Retry calling the decorated function using an exponential backoff.
 
         http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
@@ -113,10 +117,10 @@ class Imgur():
         def deco_retry(f):
             def f_retry(self, *args, **kwargs):
                 for attempt in range(tries):
-                    result = f(self, *args, **kwargs)
-                    if self.is_success(result):
+                    try:
+                        result = f(self, *args, **kwargs)
                         return result['data']
-                    else:
+                    except errors:
                         logger.info('reauthorize...')
                         self.request_new_tokens_and_update()
                         self.write_tokens_to_config()
@@ -228,7 +232,10 @@ class Imgur():
             }
 
         self._request('GET', url, None, headers)
-        return self._get_json_response()
+        json_response = self._get_json_response()
+        if not self.is_success(json_response):
+            raise ImgurError
+        return json_response
 
     def request_new_tokens(self):
         """Request new tokens
@@ -547,7 +554,10 @@ class Imgur():
         :rtype: dict
         """
         self._request('POST', url, body, headers)
-        return self._get_json_response()
+        json_response = self._get_json_response()
+        if not self.is_success(json_response):
+            raise ImgurError
+        return json_response
 
     def upload(self, image_path=None, meta=None):
         """Upload a image
