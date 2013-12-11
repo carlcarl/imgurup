@@ -626,7 +626,7 @@ class CLIImgur(Imgur):
         pass
 
     def ask_image_path(self):
-        image_path = input('Enter your image location: ')
+        image_path = raw_input('Enter your image location: ')
         return image_path
 
     def get_ask_album_id_dialog_args(self, albums, no_album_msg):
