@@ -325,20 +325,7 @@
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.request_album_list">
 <tt class="descname">request_album_list</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_album_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request album list with the account</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>account</strong> (<em>str</em>) &#8211; The account name, &#8216;me&#8217; means yourself</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Response of requesting albums list (json)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.request_new_tokens">
@@ -365,31 +352,11 @@
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.request_upload_image">
 <tt class="descname">request_upload_image</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.request_upload_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Request upload image</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>url</strong> (<em>str</em>) &#8211; Upload url</li>
-<li><strong>body</strong> (<em>str</em>) &#8211; The content string of the request</li>
-<li><strong>headers</strong> (<em>dict</em>) &#8211; The headers of the request</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Response of upload image</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.retry">
-<tt class="descname">retry</tt><big>(</big><em>tries=2</em>, <em>delay=1</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.retry" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">retry</tt><big>(</big><em>tries=2</em>, <em>delay=1</em>, <em>errors=(&lt;class 'imgurup.__init__.ImgurError'&gt;</em>, <em>&lt;class 'httplib.BadStatusLine'&gt;)</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.retry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retry calling the decorated function using an exponential backoff.</p>
 <p><a class="reference external" href="http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/">http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/</a>
 original from: <a class="reference external" href="http://wiki.python.org/moin/PythonDecoratorLibrary#Retry">http://wiki.python.org/moin/PythonDecoratorLibrary#Retry</a></p>
@@ -475,6 +442,12 @@ There will be maybe more setting needed to be written to config
 So I just pass <cite>result</cite></p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="exception">
+<dt id="imgurup.__init__.ImgurError">
+<em class="property">exception </em><tt class="descclassname">imgurup.__init__.</tt><tt class="descname">ImgurError</tt><a class="headerlink" href="#imgurup.__init__.ImgurError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
 </dd></dl>
 
 <dl class="class">
