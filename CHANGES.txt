@@ -1,3 +1,6 @@
+1.5.2
+* Bug fix: Fix manually input the path of the image which will be uploaded
+
 1.5.1
 -----
 * Bug fix: Error when not specify image file
