@@ -869,7 +869,7 @@ class ZenityImgur(Imgur):
 
     def get_ask_album_id_dialog_args(self, albums, no_album_msg):
         i = 1
-        arg = [
+        args = [
             'zenity',
             '--list',
             '--text="Choose the album"',
@@ -878,13 +878,14 @@ class ZenityImgur(Imgur):
             '--column=Privacy',
         ]
         for album in albums:
-            arg.append(str(i))
-            arg.append('{album[title]}'.format(album=album))
-            arg.append('{album[privacy]}'.format(album=album))
+            args.append(str(i))
+            args.append('{album[title]}'.format(album=album))
+            args.append('{album[privacy]}'.format(album=album))
             i += 1
-        arg.append(str(i))
-        arg.append(no_album_msg)
-        arg.append('public')
+        args.append(str(i))
+        args.append(no_album_msg)
+        args.append('public')
+        return args
 
     def get_show_link_dialog_args(self, links):
         args = [
