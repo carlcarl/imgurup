@@ -698,7 +698,7 @@ class KDEImgur(Imgur):
             args.append('{album[title]}({album[privacy]})'.format(album=album))
             i += 1
         args.append(str(i))
-        args.append(no_album_msg)
+        args.append(no_album_msg + '(public)')
 
         return args
 
@@ -814,7 +814,6 @@ class MacImgur(Imgur):
         )
         response = show_link_dialog.communicate()[0].strip()
         response = response[response.find(':') + 1:response.find(',')]
-        print(response)
         if response == 'Show delete link':
             delete_link = 'http://imgur.com/delete/{delete}'.format(delete=delete_hash)
             args2 = [
