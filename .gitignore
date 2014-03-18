@@ -1,4 +1,5 @@
 *.pyc
+.coverage
 imgur.conf
 .*/
 build
