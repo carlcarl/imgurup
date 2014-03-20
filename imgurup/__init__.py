@@ -84,6 +84,7 @@ class Imgur():
         self._client_secret = client_secret
         self._access_token = None
         self._refresh_token = None
+        self._request = self._connect.request
 
         self._auth_url = (
             'https://api.imgur.com/oauth2/authorize?'
@@ -179,19 +180,6 @@ class Imgur():
             logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
-    def _request(self, method, url, body, headers):
-        """Private API for request
-
-        :param method: `GET` or `POST`
-        :type method: str
-        :param url: url
-        :type url: str
-        :param body: Body part of the request
-        :type body: str or None
-        :param headers: The header part of the request
-        :type headers: dict
-        """
-        self._connect.request(method, url, body, headers)
 
     def _get_json_response(self):
         """Get the json response of request
