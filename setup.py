@@ -30,5 +30,6 @@ setup(
         'Operating System :: Unix',
         'Topic :: Utilities',
         'Topic :: Software Development :: Libraries',
-    ]
+    ],
+    test_suite='nose.collector',
 )

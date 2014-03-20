@@ -166,7 +166,8 @@ class Imgur():
         Set tokens to None if can't be found in config
         """
         parser = SafeConfigParser()
-        parser.read(self.CONFIG_PATH)
+        fp = open(self.CONFIG_PATH)
+        parser.readfp(fp)
 
         try:
             self._access_token = parser.get('Token', 'access_token')
@@ -180,6 +181,7 @@ class Imgur():
             logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
 
+        fp.close()
 
     def _get_json_response(self):
         """Get the json response of request
@@ -378,13 +380,14 @@ class Imgur():
         logger.debug('Refresh token: %s', self._refresh_token)
 
         parser = SafeConfigParser()
-        parser.read(self.CONFIG_PATH)
-        if not parser.has_section('Token'):
-            parser.add_section('Token')
+        with open(self.CONFIG_PATH) as fp:
+            parser.readfp(fp)
+            if not parser.has_section('Token'):
+                parser.add_section('Token')
         parser.set('Token', 'access_token', self._access_token)
         parser.set('Token', 'refresh_token', self._refresh_token)
-        with open(self.CONFIG_PATH, 'wb') as f:
-            parser.write(f)
+        with open(self.CONFIG_PATH, 'wb') as fp:
+            parser.write(fp)
 
     @abstractmethod
     def get_ask_image_path_dialog_args(self):
