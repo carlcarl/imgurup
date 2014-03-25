@@ -79,30 +79,71 @@ class TestCLIImgur(unittest.TestCase):
         self._auth_msg = self.imgur._auth_msg
         self._token_config = (
             '[Token]\n'
-            'access_token = 0d44238a038afb846d0fb6ce017b1eef001016cb\n'
-            'refresh_token = 6dd8382a53a1f56cafe36d5fd51e16c2e13bbb0c\n'
+            'access_token = 0000000000000000000000000000000000000000\n'
+            'refresh_token = 1111111111111111111111111111111111111111\n'
         )
         self._token_response = (
-            '{"access_token":"3590141a38a3b34d27c9933ba96d914bc42c7ecc",'
+            '{"access_token":"2222222222222222222222222222222222222222",'
             '"expires_in":3600,'
             '"token_type":"bearer",'
             '"scope":null,'
-            '"refresh_token":"fbbc33fb77cfbfa3aa4bf9bf14907d6d76f0e055",'
+            '"refresh_token":"3333333333333333333333333333333333333333",'
             '"account_username":"carlcarl"}'
         )
         self._token_json_response = {
-            u'access_token': u'3590141a38a3b34d27c9933ba96d914bc42c7ecc',
+            u'access_token': u'2222222222222222222222222222222222222222',
             u'expires_in': 3600,
             u'token_type': u'bearer',
             u'account_username': u'carlcarl',
             u'scope': None,
-            u'refresh_token': u'fbbc33fb77cfbfa3aa4bf9bf14907d6d76f0e055'
+            u'refresh_token': u'3333333333333333333333333333333333333333'
         }
-
-    def test_show_error_and_exit(self):
-        with mock.patch('imgurup.subprocess') as subprocess:
-            subprocess.Popen.return_value.returncode = 0
-            self.assertRaises(SystemExit, self.imgur.show_error_and_exit, 1)
+        self._album_response = (
+            '{"data":[{"id":"XXXXX",'
+            '"title":"temp",'
+            '"description":null,'
+            '"datetime":1352238500,'
+            '"cover":"Oin6z",'
+            '"cover_width":1891,'
+            '"cover_height":967,'
+            '"account_url":"carlcarl",'
+            '"privacy":"hidden",'
+            '"layout":"grid",'
+            '"views":2,'
+            '"link":"http:\/\/imgur.com\/a\/XXXXX",'
+            '"favorite":false,'
+            '"nsfw":null,'
+            '"section":null,'
+            '"deletehash":"000000000000000",'
+            '"order":0}],'
+            '"success":true,'
+            '"status":200}'
+        )
+        self._album_json_response = {
+            u'status': 200,
+            u'data': [
+                {
+                    u'deletehash': u'000000000000000',
+                    u'layout': u'grid',
+                    u'description': None,
+                    u'title': u'temp',
+                    u'cover_height': 967,
+                    u'views': 2,
+                    u'privacy': u'hidden',
+                    u'cover': u'Oin6z',
+                    u'datetime': 1352238500,
+                    u'account_url': u'carlcarl',
+                    u'favorite': False,
+                    u'cover_width': 1891,
+                    u'link': u'http://imgur.com/a/XXXXX',
+                    u'section': None,
+                    u'nsfw': None,
+                    u'order': 0,
+                    u'id': u'XXXXX'
+                }
+            ],
+            u'success': True
+        }
 
     def test_set_tokens_using_config(self):
         import io
@@ -110,12 +151,25 @@ class TestCLIImgur(unittest.TestCase):
             self.imgur.set_tokens_using_config()
             self.assertEqual(
                 self.imgur._access_token,
-                '0d44238a038afb846d0fb6ce017b1eef001016cb'
+                '0000000000000000000000000000000000000000'
             )
             self.assertEqual(
                 self.imgur._refresh_token,
-                '6dd8382a53a1f56cafe36d5fd51e16c2e13bbb0c'
+                '1111111111111111111111111111111111111111'
             )
+
+    @httpretty.activate
+    def test_request_album_list(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://api.imgur.com/3/account/me/albums",
+            body=self._album_response,
+            status=200
+        )
+        import io
+        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+            json_response = self.imgur.request_album_list()
+            self.assertEqual(len(json_response), 1)
 
     @httpretty.activate
     def test_request_new_token(self):
@@ -141,11 +195,11 @@ class TestCLIImgur(unittest.TestCase):
             self.imgur.request_new_tokens_and_update()
             self.assertEqual(
                 self.imgur._access_token,
-                '3590141a38a3b34d27c9933ba96d914bc42c7ecc'
+                '2222222222222222222222222222222222222222'
             )
             self.assertEqual(
                 self.imgur._refresh_token,
-                'fbbc33fb77cfbfa3aa4bf9bf14907d6d76f0e055'
+                '3333333333333333333333333333333333333333'
             )
 
     def test_is_success(self):
@@ -161,8 +215,8 @@ class TestCLIImgur(unittest.TestCase):
     def test_write_tokens_to_config(self):
         from mock import mock_open
         from mock import call
-        self.imgur._access_token = '0d44238a038afb846d0fb6ce017b1eef001016cb'
-        self.imgur._refresh_token = '6dd8382a53a1f56cafe36d5fd51e16c2e13bbb0c'
+        self.imgur._access_token = '0000000000000000000000000000000000000000'
+        self.imgur._refresh_token = '1111111111111111111111111111111111111111'
         with mock.patch('imgurup.ConfigParser.SafeConfigParser.read'):
             m = mock_open()
             with mock.patch('__builtin__.open', m, create=True):
@@ -172,8 +226,8 @@ class TestCLIImgur(unittest.TestCase):
                 handle.write.assert_has_calls(
                     [
                         call('[Token]\n'),
-                        call('access_token = 0d44238a038afb846d0fb6ce017b1eef001016cb\n'),
-                        call('refresh_token = 6dd8382a53a1f56cafe36d5fd51e16c2e13bbb0c\n'),
+                        call('access_token = 0000000000000000000000000000000000000000\n'),
+                        call('refresh_token = 1111111111111111111111111111111111111111\n'),
                     ]
                 )
 
@@ -200,6 +254,11 @@ class TestZenityImgur(unittest.TestCase):
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
+
+    def test_show_error_and_exit(self):
+        with mock.patch('imgurup.subprocess') as subprocess:
+            subprocess.Popen.return_value.returncode = 0
+            self.assertRaises(SystemExit, self.imgur.show_error_and_exit, 1)
 
     def test_get_error_dialog_args(self):
         result = self.imgur.get_error_dialog_args()
