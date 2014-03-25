@@ -373,21 +373,18 @@ class Imgur():
 
     def write_tokens_to_config(self):
         """Write token value to the config
-        There will be maybe more setting needed to be written to config
-        So I just pass `result`
         """
         logger.debug('Access token: %s', self._access_token)
         logger.debug('Refresh token: %s', self._refresh_token)
 
         parser = SafeConfigParser()
-        with open(self.CONFIG_PATH) as fp:
-            parser.readfp(fp)
-            if not parser.has_section('Token'):
-                parser.add_section('Token')
+        parser.read(self.CONFIG_PATH)
+        if not parser.has_section('Token'):
+            parser.add_section('Token')
         parser.set('Token', 'access_token', self._access_token)
         parser.set('Token', 'refresh_token', self._refresh_token)
-        with open(self.CONFIG_PATH, 'wb') as fp:
-            parser.write(fp)
+        with open(self.CONFIG_PATH, 'wb') as f:
+            parser.write(f)
 
     @abstractmethod
     def get_ask_image_path_dialog_args(self):
