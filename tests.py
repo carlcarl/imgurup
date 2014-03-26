@@ -286,11 +286,9 @@ class TestCLIImgur(unittest.TestCase):
         image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         delete_hash = 'xxxxxxxxxxxxxxx'
         from mock import call
-        from mock import MagicMock
-        m = MagicMock(return_value=None)
-        with mock.patch('__builtin__.print', m):
+        with mock.patch('__builtin__.print') as p:
             self.imgur.show_link(image_link, delete_hash)
-            m.assert_has_calls(
+            p.assert_has_calls(
                 [
                     call('Link: http://i.imgur.com/xxxxxxx.jpg'),
                     call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
@@ -395,6 +393,21 @@ class TestZenityImgur(unittest.TestCase):
         ]
         self.assertListEqual(result, args)
 
+    def test_ask_image_path(self):
+        with mock.patch('imgurup.subprocess') as subprocess:
+            def communicate_data():
+                return ['/tmp/test.jpg']
+
+            def communicate_empty():
+                return ['']
+            # Fail case
+            subprocess.Popen.return_value.communicate = communicate_empty
+            self.assertRaises(SystemExit, self.imgur.ask_image_path)
+            # Success case
+            subprocess.Popen.return_value.communicate = communicate_data
+            image_path = self.imgur.ask_image_path()
+            self.assertEqual(image_path, '/tmp/test.jpg')
+
     def test_get_ask_album_id_dialog_args(self):
         albums = []
         albums.append(
@@ -432,19 +445,42 @@ class TestZenityImgur(unittest.TestCase):
 
     def test_get_show_link_dialog_args(self):
         links = (
-            'http://imgur.com/aaaaa\n'
-            'Delete link: http://imgur.com/delete/bbbbb'
+            'Link: http://i.imgur.com/xxxxxxx.jpg\n'
+            'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
         )
         result = self.imgur.get_show_link_dialog_args(links)
         args = [
             'zenity',
             '--info',
             (
-                '--text=http://imgur.com/aaaaa\n'
-                'Delete link: http://imgur.com/delete/bbbbb'
+                '--text=Link: http://i.imgur.com/xxxxxxx.jpg\n'
+                'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
             )
         ]
         self.assertListEqual(result, args)
+
+    def test_show_link(self):
+        image_link = 'http://i.imgur.com/xxxxxxx.jpg'
+        delete_hash = 'xxxxxxxxxxxxxxx'
+        from mock import call
+        with mock.patch('imgurup.subprocess') as subprocess:
+            self.imgur.show_link(image_link, delete_hash)
+            subprocess.Popen.assert_has_calls(
+                [
+                    call(
+                        [
+                            'zenity',
+                            '--info',
+                            (
+                                '--text=Link: http://i.imgur.com/xxxxxxx.jpg\n'
+                                'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
+                            )
+                        ],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                ]
+            )
 
 
 class TestKDEImgur(unittest.TestCase):
