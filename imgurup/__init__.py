@@ -142,7 +142,6 @@ class Imgur():
         :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
         :rtype: list
         """
-        pass
 
     def show_error_and_exit(self, msg='Error'):
         """Display error message and exit the program
@@ -174,13 +173,11 @@ class Imgur():
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             logger.warning('Can\'t find access token, set to empty')
             self._access_token = None
-
         try:
             self._refresh_token = parser.get('Token', 'refresh_token')
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
-
         fp.close()
 
     def _get_json_response(self):
@@ -279,7 +276,6 @@ class Imgur():
         :return: A list include dialog command
         :rtype: list
         """
-        pass
 
     @abstractmethod
     def get_enter_pin_dialog_args(self, token_msg):
@@ -290,7 +286,6 @@ class Imgur():
         :return: A list include dialog command
         :rtype: list
         """
-        pass
 
     def ask_pin(self, auth_msg, auth_url, enter_token_msg):
         """Ask user for pin code
@@ -393,7 +388,6 @@ class Imgur():
         :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
         :rtype: list
         """
-        pass
 
     def ask_image_path(self):
         """Display a file dialog and prompt the user to select a image
@@ -435,7 +429,6 @@ class Imgur():
         :return: A list include dialog command
         :rtype: list
         """
-        pass
 
     def ask_album_id(self, albums):
         """Ask user to choose a album to upload or not belong to any album
@@ -469,7 +462,6 @@ class Imgur():
         :return: A list include dialog command
         :rtype: list
         """
-        pass
 
     def show_link(self, image_link, delete_hash):
         """Show image link
