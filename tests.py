@@ -119,6 +119,11 @@ class TestCLIImgur(unittest.TestCase):
             '"success":true,'
             '"status":200}'
         )
+        self._album_fail_response = (
+            '{"data":{"error": "fail"},'
+            '"success":false,'
+            '"status":200}'
+        )
         self._album_json_response = {
             u'status': 200,
             u'data': [
@@ -291,6 +296,45 @@ class TestCLIImgur(unittest.TestCase):
                     call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
                 ]
             )
+
+    @httpretty.activate
+    def test_request_upload_image_success(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.imgur.com/3/image',
+            body=self._album_response,
+            status=200
+        )
+        json_response = self.imgur.request_upload_image(
+            'https://api.imgur.com/3/image',
+            body='',
+            headers={}
+        )
+        self.assertEqual(len(json_response), 1)
+
+    @httpretty.activate
+    def test_request_upload_image_fail(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.imgur.com/3/image',
+            body=self._album_fail_response,
+            status=200
+        )
+        with mock.patch(
+            'imgurup.CLIImgur.request_new_tokens_and_update',
+            return_value=None
+        ):
+            with mock.patch(
+                'imgurup.CLIImgur.write_tokens_to_config',
+                return_value=None
+            ):
+                self.assertRaises(
+                    SystemExit,
+                    self.imgur.request_upload_image,
+                    'https://api.imgur.com/3/image',
+                    body='',
+                    headers={}
+                )
 
 
 class TestZenityImgur(unittest.TestCase):
