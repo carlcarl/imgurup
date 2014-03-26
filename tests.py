@@ -165,15 +165,25 @@ class TestCLIImgur(unittest.TestCase):
 
     @httpretty.activate
     def test_request_album_list(self):
+        import io
         httpretty.register_uri(
             httpretty.GET,
             "https://api.imgur.com/3/account/me/albums",
             body=self._album_response,
             status=200
         )
-        import io
         with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             json_response = self.imgur.request_album_list()
+            self.assertEqual(len(json_response), 1)
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://api.imgur.com/3/account/carlcarl/albums",
+            body=self._album_response,
+            status=200
+        )
+        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+            json_response = self.imgur.request_album_list(account='carlcarl')
             self.assertEqual(len(json_response), 1)
 
     @httpretty.activate
