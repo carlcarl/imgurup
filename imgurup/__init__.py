@@ -592,10 +592,10 @@ class CLIImgur(Imgur):
         return None
 
     def get_auth_msg_dialog_args(self, auth_msg, auth_url):
-        pass
+        raise NotImplementedError()
 
     def get_enter_pin_dialog_args(self, token_msg):
-        pass
+        raise NotImplementedError()
 
     def ask_pin(self, auth_msg, auth_url, enter_token_msg):
         print(auth_msg + auth_url)
@@ -603,14 +603,14 @@ class CLIImgur(Imgur):
         return pin
 
     def get_ask_image_path_dialog_args(self):
-        pass
+        raise NotImplementedError()
 
     def ask_image_path(self):
         image_path = raw_input('Enter your image location: ')
         return image_path
 
     def get_ask_album_id_dialog_args(self, albums, no_album_msg):
-        pass
+        raise NotImplementedError()
 
     def ask_album_id(self, albums):
         i = 1
@@ -627,7 +627,7 @@ class CLIImgur(Imgur):
         return self._get_album_id(data_map, album_number)
 
     def get_show_link_dialog_args(self, links):
-        pass
+        raise NotImplementedError()
 
     def show_link(self, image_link, delete_hash):
         print('Link: {link}'.format(link=image_link.replace('\\', '')))

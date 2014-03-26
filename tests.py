@@ -191,6 +191,11 @@ class TestCLIImgur(unittest.TestCase):
             status=200
         )
         import io
+        # Fail case which without token values in config
+        with mock.patch('__builtin__.open', return_value=io.BytesIO('')):
+            self.assertRaises(SystemExit, self.imgur.request_new_tokens_and_update)
+
+        # Success case
         with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             self.imgur.request_new_tokens_and_update()
             self.assertEqual(
@@ -234,15 +239,43 @@ class TestCLIImgur(unittest.TestCase):
     def test_get_error_dialog_args(self):
         self.failUnless(self.imgur.get_error_dialog_args() is None)
 
+    def test_get_auth_msg_dialog_args(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.imgur.get_auth_msg_dialog_args,
+            self._auth_msg,
+            self._auth_url
+        )
+
+    def test_get_enter_pin_dialog_args(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.imgur.get_enter_pin_dialog_args,
+            self._token_msg
+        )
+
     def test_ask_pin(self):
         pin = '000000'
         with mock.patch('__builtin__.raw_input', return_value=pin):
             self.assertEqual(self.imgur.ask_pin(self._auth_msg, self._auth_url, self._token_msg), pin)
 
+    def test_get_ask_image_path_dialog_args(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.imgur.get_ask_image_path_dialog_args
+        )
+
     def test_ask_image_path(self):
         path = '/home/test/test.jpg'
         with mock.patch('__builtin__.raw_input', return_value=path):
             self.assertEqual(self.imgur.ask_image_path(), path)
+
+    def test_get_show_link_dialog_args(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.imgur.get_show_link_dialog_args,
+            {}
+        )
 
 
 class TestZenityImgur(unittest.TestCase):
