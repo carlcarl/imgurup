@@ -495,16 +495,20 @@ class Imgur():
             return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
         def encode_field(field_name):
-            return ('--' + boundary,
-                    'Content-Disposition: form-data; name="%s"' % field_name,
-                    '', str(data[field_name]))
+            return (
+                '--' + boundary,
+                'Content-Disposition: form-data; name="%s"' % field_name,
+                '', str(data[field_name])
+            )
 
         def encode_file(field_name):
             filename = files[field_name]
-            return ('--' + boundary,
-                    'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
-                    'Content-Type: %s' % get_content_type(filename),
-                    '', open(filename, 'rb').read())
+            return (
+                '--' + boundary,
+                'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
+                'Content-Type: %s' % get_content_type(filename),
+                '', open(filename, 'rb').read()
+            )
 
         boundary = random_string(30)
         lines = []
@@ -515,8 +519,10 @@ class Imgur():
         lines.extend(('--%s--' % boundary, ''))
         body = '\r\n'.join(lines)
 
-        headers = {'content-type': 'multipart/form-data; boundary=' + boundary,
-                   'content-length': str(len(body))}
+        headers = {
+            'content-type': 'multipart/form-data; boundary=' + boundary,
+            'content-length': str(len(body))
+        }
 
         return body, headers
 
