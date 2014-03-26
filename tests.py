@@ -277,6 +277,21 @@ class TestCLIImgur(unittest.TestCase):
             {}
         )
 
+    def test_show_link(self):
+        image_link = 'http://i.imgur.com/xxxxxxx.jpg'
+        delete_hash = 'xxxxxxxxxxxxxxx'
+        from mock import call
+        from mock import MagicMock
+        m = MagicMock(return_value=None)
+        with mock.patch('__builtin__.print', m):
+            self.imgur.show_link(image_link, delete_hash)
+            m.assert_has_calls(
+                [
+                    call('Link: http://i.imgur.com/xxxxxxx.jpg'),
+                    call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
+                ]
+            )
+
 
 class TestZenityImgur(unittest.TestCase):
 
