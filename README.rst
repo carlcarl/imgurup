@@ -1,5 +1,10 @@
 imgurup
 ============
+
+.. image:: https://badge.fury.io/py/imgurup.png
+   :target: https://pypi.python.org/pypi/imgurup
+   :alt: Latest PyPI version
+
 Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload. And you can also use your account to upload :).
 
 
