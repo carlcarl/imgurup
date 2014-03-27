@@ -5,13 +5,13 @@ imgurup
    :target: https://pypi.python.org/pypi/imgurup
    :alt: Latest PyPI version
 
-Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload. And you can also use your account to upload :).
+Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload.
 
 
 Feature
 -------
-Support upload images(anonymously) or with your account.
-Support CLI, KDE, Zenity(GTK) and Mac dialog upload
+| Support upload images(anonymously) or with your account.
+| Support CLI, KDE, Zenity(GTK) and Mac dialog upload
 
 Installation
 ------------
@@ -30,11 +30,9 @@ Usage
 -----
 ``img [-h] [-f [<image path> [<image path> ...]]] [-d [<album id>]] [-g] [-n] [-q]``
 
-You can just type ``img`` without any argument, the program will ask you for another infomation.
-
-But add ``-f`` argument with your image file would be easier to use, ex: ``img -f xx.jpg``
-
-After the authentication, the access_token and refresh_token will be saved in ``~/.imgurup.conf``
+| You can just type ``img`` without any argument, the program will ask you for another infomation.
+| But add ``-f`` argument with your image file would be easier to use, ex: ``img -f xx.jpg``
+| After the authentication, the access_token and refresh_token will be saved in ``~/.imgurup.conf``
 
 Optional arguments:
 ::
