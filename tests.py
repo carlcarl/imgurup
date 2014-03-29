@@ -149,6 +149,18 @@ class TestCLIImgur(unittest.TestCase):
             ],
             u'success': True
         }
+        self._albums = [
+            {
+                'id': '1',
+                'title': 'hello',
+                'privacy': 'public'
+            },
+            {
+                'id': '2',
+                'title': 'hello2',
+                'privacy': 'private'
+            }
+        ]
 
     def test_set_tokens_using_config(self):
         import io
@@ -176,6 +188,8 @@ class TestCLIImgur(unittest.TestCase):
             json_response = self.imgur.request_album_list()
             self.assertEqual(len(json_response), 1)
 
+        httpretty.disable()
+
         httpretty.register_uri(
             httpretty.GET,
             "https://api.imgur.com/3/account/carlcarl/albums",
@@ -185,6 +199,31 @@ class TestCLIImgur(unittest.TestCase):
         with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             json_response = self.imgur.request_album_list(account='carlcarl')
             self.assertEqual(len(json_response), 1)
+
+        httpretty.disable()
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://api.imgur.com/3/account/me/albums",
+            body=self._album_fail_response,
+            status=200
+        )
+        with mock.patch(
+            'imgurup.CLIImgur.request_new_tokens_and_update',
+            return_value=None
+        ):
+            with mock.patch(
+                'imgurup.CLIImgur.write_tokens_to_config',
+                return_value=None
+            ):
+                with mock.patch(
+                    'imgurup.time.sleep',
+                    return_value=None
+                ):
+                    self.assertRaises(
+                        SystemExit,
+                        self.imgur.request_album_list,
+                    )
 
     @httpretty.activate
     def test_request_new_token(self):
@@ -285,6 +324,11 @@ class TestCLIImgur(unittest.TestCase):
         with mock.patch('__builtin__.raw_input', return_value=path):
             self.assertEqual(self.imgur.ask_image_path(), path)
 
+    def test_ask_album_id(self):
+        with mock.patch('__builtin__.input', return_value=1):
+            result = self.imgur.ask_album_id(self._albums)
+            self.assertEqual(result, '1')
+
     def test_get_show_link_dialog_args(self):
         self.assertRaises(
             NotImplementedError,
@@ -336,13 +380,17 @@ class TestCLIImgur(unittest.TestCase):
                 'imgurup.CLIImgur.write_tokens_to_config',
                 return_value=None
             ):
-                self.assertRaises(
-                    SystemExit,
-                    self.imgur.request_upload_image,
-                    'https://api.imgur.com/3/image',
-                    body='',
-                    headers={}
-                )
+                with mock.patch(
+                    'imgurup.time.sleep',
+                    return_value=None
+                ):
+                    self.assertRaises(
+                        SystemExit,
+                        self.imgur.request_upload_image,
+                        'https://api.imgur.com/3/image',
+                        body='',
+                        headers={}
+                    )
 
 
 class TestZenityImgur(unittest.TestCase):
@@ -354,6 +402,16 @@ class TestZenityImgur(unittest.TestCase):
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
+        self._albums = [
+            {
+                'title': 'hello',
+                'privacy': 'public'
+            },
+            {
+                'title': 'hello2',
+                'privacy': 'private'
+            }
+        ]
 
     def test_show_error_and_exit(self):
         with mock.patch('imgurup.subprocess') as subprocess:
@@ -419,21 +477,8 @@ class TestZenityImgur(unittest.TestCase):
             self.assertEqual(image_path, '/tmp/test.jpg')
 
     def test_get_ask_album_id_dialog_args(self):
-        albums = []
-        albums.append(
-            {
-                'title': 'hello',
-                'privacy': 'public'
-            }
-        )
-        albums.append(
-            {
-                'title': 'hello2',
-                'privacy': 'private'
-            }
-        )
         no_album_msg = self._no_album_msg
-        result = self.imgur.get_ask_album_id_dialog_args(albums, no_album_msg)
+        result = self.imgur.get_ask_album_id_dialog_args(self._albums, no_album_msg)
         args = [
             'zenity',
             '--list',
