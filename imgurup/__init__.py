@@ -97,23 +97,14 @@ class Imgur():
         self._enter_token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
 
-    def retry(tries=2, delay=1, errors=(ImgurError, httplib.BadStatusLine)):
+    def retry(errors=(ImgurError, httplib.BadStatusLine)):
         """Retry calling the decorated function using an exponential backoff.
 
         http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
         original from: http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
-
-        :param tries: number of times to try (not retry) before giving up
-        :type tries: int
-        :param delay: initial delay between retries in seconds
-        :type delay: int
         """
-
-        if tries < 0:
-            raise ValueError("tries must be 0 or greater")
-
-        if delay <= 0:
-            raise ValueError("delay must be greater than 0")
+        tries = 2
+        delay = 1
 
         def deco_retry(f):
             def f_retry(self, *args, **kwargs):
