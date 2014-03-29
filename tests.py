@@ -62,6 +62,11 @@ class TestImgurFactory(unittest.TestCase):
                         self.ImgurFactory.detect_env(is_gui),
                         ZenityImgur
                     )
+                with mock.patch.dict('imgurup.os.environ', {'DESKTOP_SESSION': 'pantheon'}):
+                    self.assertEqual(
+                        self.ImgurFactory.detect_env(is_gui),
+                        ZenityImgur
+                    )
 
                 is_gui = False
                 self.assertEqual(
@@ -409,10 +414,12 @@ class TestZenityImgur(unittest.TestCase):
         self._no_album_msg = self.imgur._no_album_msg
         self._albums = [
             {
+                'id': '1',
                 'title': 'hello',
                 'privacy': 'public'
             },
             {
+                'id': '2',
                 'title': 'hello2',
                 'privacy': 'private'
             }
@@ -434,6 +441,23 @@ class TestZenityImgur(unittest.TestCase):
             'zenity',
             '--entry',
             '--text=Enter PIN code displayed in the browser: ',
+        ]
+        self._ask_album_id_dialog_args = [
+            'zenity',
+            '--list',
+            '--text="Choose the album"',
+            '--column=No.',
+            '--column=Album name',
+            '--column=Privacy',
+            '1',
+            'hello',
+            'public',
+            '2',
+            'hello2',
+            'private',
+            '3',
+            'Do not move to any album',
+            'public'
         ]
 
     def test_show_error_and_exit(self):
@@ -523,24 +547,19 @@ class TestZenityImgur(unittest.TestCase):
     def test_get_ask_album_id_dialog_args(self):
         no_album_msg = self._no_album_msg
         result = self.imgur.get_ask_album_id_dialog_args(self._albums, no_album_msg)
-        args = [
-            'zenity',
-            '--list',
-            '--text="Choose the album"',
-            '--column=No.',
-            '--column=Album name',
-            '--column=Privacy',
-            '1',
-            'hello',
-            'public',
-            '2',
-            'hello2',
-            'private',
-            '3',
-            'Do not move to any album',
-            'public'
-        ]
-        self.assertListEqual(result, args)
+        self.assertListEqual(result, self._ask_album_id_dialog_args)
+
+    def test_ask_album_id(self):
+        with mock.patch(
+            'imgurup.ZenityImgur.get_ask_album_id_dialog_args',
+            return_value=self._ask_album_id_dialog_args
+        ):
+            with mock.patch('imgurup.subprocess') as subprocess:
+                subprocess.Popen.return_value.communicate = lambda: ['1']
+                result = self.imgur.ask_album_id(self._albums)
+                self.assertEqual(result, '1')
+                subprocess.Popen.return_value.communicate = lambda: ['']
+                self.assertRaises(SystemExit, self.imgur.ask_album_id, self._albums)
 
     def test_get_show_link_dialog_args(self):
         links = (
