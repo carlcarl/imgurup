@@ -629,7 +629,7 @@ class CLIImgur(Imgur):
         print('{i}) {msg}'.format(i=i, msg=self._no_album_msg))
         data_map.append({'id': None})
         album_number = int(input())
-        # Return album id, number select start from 1, so minus 1
+        # Get [album_number-1] from the list
         return self._get_album_id(data_map, album_number)
 
     def get_show_link_dialog_args(self, links):
