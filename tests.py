@@ -1,5 +1,6 @@
 import unittest
 import mock
+from mock import call
 import httpretty
 
 
@@ -74,7 +75,7 @@ class TestCLIImgur(unittest.TestCase):
     def setUp(self):
         from imgurup import CLIImgur
         self.imgur = CLIImgur()
-        self._token_msg = self.imgur._enter_token_msg
+        self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._token_config = (
@@ -273,7 +274,6 @@ class TestCLIImgur(unittest.TestCase):
 
     def test_write_tokens_to_config(self):
         from mock import mock_open
-        from mock import call
         self.imgur._access_token = '0000000000000000000000000000000000000000'
         self.imgur._refresh_token = '1111111111111111111111111111111111111111'
         with mock.patch('imgurup.ConfigParser.SafeConfigParser.read'):
@@ -305,13 +305,19 @@ class TestCLIImgur(unittest.TestCase):
         self.assertRaises(
             NotImplementedError,
             self.imgur.get_enter_pin_dialog_args,
-            self._token_msg
+            self._enter_token_msg
         )
 
     def test_ask_pin(self):
         pin = '000000'
         with mock.patch('__builtin__.raw_input', return_value=pin):
-            self.assertEqual(self.imgur.ask_pin(self._auth_msg, self._auth_url, self._token_msg), pin)
+            self.assertEqual(
+                self.imgur.ask_pin(
+                    self._auth_msg,
+                    self._auth_url,
+                    self._enter_token_msg),
+                pin
+            )
 
     def test_get_ask_image_path_dialog_args(self):
         self.assertRaises(
@@ -339,7 +345,6 @@ class TestCLIImgur(unittest.TestCase):
     def test_show_link(self):
         image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         delete_hash = 'xxxxxxxxxxxxxxx'
-        from mock import call
         with mock.patch('__builtin__.print') as p:
             self.imgur.show_link(image_link, delete_hash)
             p.assert_has_calls(
@@ -398,7 +403,7 @@ class TestZenityImgur(unittest.TestCase):
     def setUp(self):
         from imgurup import ZenityImgur
         self.imgur = ZenityImgur()
-        self._token_msg = self.imgur._enter_token_msg
+        self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
@@ -411,6 +416,24 @@ class TestZenityImgur(unittest.TestCase):
                 'title': 'hello2',
                 'privacy': 'private'
             }
+        ]
+        self._auth_msg_dialog_args = [
+            'zenity',
+            '--entry',
+            (
+                '--text=This is the first time you use this program, '
+                'you have to visit this URL in your browser '
+                'and copy the PIN code: \n'
+            ),
+            (
+                '--entry-text=https://api.imgur.com/oauth2/authorize?'
+                'client_id=55080e3fd8d0644&response_type=pin&state=carlcarl'
+            )
+        ]
+        self._enter_pin_dialog_args = [
+            'zenity',
+            '--entry',
+            '--text=Enter PIN code displayed in the browser: ',
         ]
 
     def test_show_error_and_exit(self):
@@ -429,29 +452,50 @@ class TestZenityImgur(unittest.TestCase):
 
     def test_get_auth_msg_dialog_args(self):
         result = self.imgur.get_auth_msg_dialog_args(self._auth_msg, self._auth_url)
-        args = [
-            'zenity',
-            '--entry',
-            (
-                '--text=This is the first time you use this program, '
-                'you have to visit this URL in your browser '
-                'and copy the PIN code: \n'
-            ),
-            (
-                '--entry-text=https://api.imgur.com/oauth2/authorize?'
-                'client_id=55080e3fd8d0644&response_type=pin&state=carlcarl'
-            )
-        ]
-        self.assertListEqual(result, args)
+        self.assertListEqual(result, self._auth_msg_dialog_args)
 
     def test_get_enter_pin_dialog_args(self):
-        result = self.imgur.get_enter_pin_dialog_args(self._token_msg)
-        args = [
-            'zenity',
-            '--entry',
-            '--text=Enter PIN code displayed in the browser: ',
-        ]
-        self.assertListEqual(result, args)
+        result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
+        self.assertListEqual(result, self._enter_pin_dialog_args)
+
+    def test_ask_pin(self):
+        def _test_ask_pin(args, stdout, stderr):
+            from mock import MagicMock
+            m = MagicMock()
+            if args == self._auth_msg_dialog_args:
+                m.communicate = lambda: ['']
+            elif args == self._enter_pin_dialog_args:
+                m.communicate = lambda: ['XXXXXX']
+            return m
+
+        with mock.patch(
+            'imgurup.ZenityImgur.get_auth_msg_dialog_args',
+            return_value=self._auth_msg_dialog_args
+        ):
+            with mock.patch(
+                'imgurup.subprocess'
+            ) as subprocess:
+                subprocess.Popen.side_effect = _test_ask_pin
+                pin = self.imgur.ask_pin(
+                    self._auth_msg,
+                    self._auth_url,
+                    self._enter_token_msg
+                )
+                self.assertEqual(pin, 'XXXXXX')
+                subprocess.Popen.assert_has_calls(
+                    [
+                        call(
+                            self._auth_msg_dialog_args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                        ),
+                        call(
+                            self._enter_pin_dialog_args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                        )
+                    ]
+                )
 
     def test_get_ask_image_path_dialog_args(self):
         result = self.imgur.get_ask_image_path_dialog_args()
@@ -517,7 +561,6 @@ class TestZenityImgur(unittest.TestCase):
     def test_show_link(self):
         image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         delete_hash = 'xxxxxxxxxxxxxxx'
-        from mock import call
         with mock.patch('imgurup.subprocess') as subprocess:
             self.imgur.show_link(image_link, delete_hash)
             subprocess.Popen.assert_has_calls(
@@ -543,7 +586,7 @@ class TestKDEImgur(unittest.TestCase):
     def setUp(self):
         from imgurup import KDEImgur
         self.imgur = KDEImgur()
-        self._token_msg = self.imgur._enter_token_msg
+        self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
@@ -573,7 +616,7 @@ class TestKDEImgur(unittest.TestCase):
         self.assertListEqual(result, args)
 
     def test_get_enter_pin_dialog_args(self):
-        result = self.imgur.get_enter_pin_dialog_args(self._token_msg)
+        result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
         args = [
             'kdialog',
             '--title',
@@ -643,7 +686,7 @@ class TestMacImgur(unittest.TestCase):
     def setUp(self):
         from imgurup import MacImgur
         self.imgur = MacImgur()
-        self._token_msg = self.imgur._enter_token_msg
+        self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
@@ -679,7 +722,7 @@ class TestMacImgur(unittest.TestCase):
         self.assertListEqual(result, args)
 
     def test_get_enter_pin_dialog_args(self):
-        result = self.imgur.get_enter_pin_dialog_args(self._token_msg)
+        result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
         args = [
             'osascript',
             '-e',
