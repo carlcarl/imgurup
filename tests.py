@@ -1,6 +1,7 @@
 import unittest
 import mock
 from mock import call
+from mock import patch
 import httpretty
 
 
@@ -34,45 +35,83 @@ class TestImgurFactory(unittest.TestCase):
             type(self.ImgurFactory.get_imgur(imgur_class))
         )
 
-    def test_detect_env(self):
-        is_gui = True
-        from imgurup import KDEImgur
+    @patch('imgurup.sys')
+    @patch('imgurup.os.environ')
+    def test_detect_env_cli(self, environ, mock_sys):
         from imgurup import CLIImgur
-        from imgurup import ZenityImgur
-        with mock.patch.dict('imgurup.os.environ', {'KDE_FULL_SESSION': 'true'}):
+        is_gui = True
+        environ['KDE_FULL_SESSION'] = None
+        environ['DESKTOP_SESSION'] = None
+        type(mock_sys).platform = mock.PropertyMock(return_value=None)
+        self.assertEqual(
+            self.ImgurFactory.detect_env(is_gui),
+            CLIImgur
+        )
+        is_gui = False
+        self.assertEqual(
+            self.ImgurFactory.detect_env(is_gui),
+            CLIImgur
+        )
+
+    @patch('imgurup.sys')
+    def test_detect_env_kde(self, mock_sys):
+        from imgurup import KDEImgur
+        is_gui = True
+        environ_data = {
+            'KDE_FULL_SESSION': 'true',
+            'DESKTOP_SESSION': ''
+        }
+        type(mock_sys).platform = mock.PropertyMock(return_value='linux2')
+        with patch.dict('imgurup.os.environ', environ_data):
             self.assertEqual(
                 self.ImgurFactory.detect_env(is_gui),
                 KDEImgur
             )
-        with mock.patch.dict('imgurup.os.environ', {'KDE_FULL_SESSION': 'false'}):
-            with mock.patch('imgurup.sys') as sys:
-                from imgurup import MacImgur
-                type(sys).platform = mock.PropertyMock(return_value='darwin')
-                self.assertEqual(
-                    self.ImgurFactory.detect_env(is_gui),
-                    MacImgur
-                )
-                type(sys).platform = mock.PropertyMock(return_value='')
-                self.assertEqual(
-                    self.ImgurFactory.detect_env(is_gui),
-                    CLIImgur
-                )
-                with mock.patch.dict('imgurup.os.environ', {'DESKTOP_SESSION': 'gnome'}):
-                    self.assertEqual(
-                        self.ImgurFactory.detect_env(is_gui),
-                        ZenityImgur
-                    )
-                with mock.patch.dict('imgurup.os.environ', {'DESKTOP_SESSION': 'pantheon'}):
-                    self.assertEqual(
-                        self.ImgurFactory.detect_env(is_gui),
-                        ZenityImgur
-                    )
 
-                is_gui = False
-                self.assertEqual(
-                    self.ImgurFactory.detect_env(is_gui),
-                    CLIImgur
-                )
+    @patch('imgurup.sys')
+    def test_detect_env_mac(self, mock_sys):
+        from imgurup import MacImgur
+        is_gui = True
+        environ_data = {
+            'KDE_FULL_SESSION': '',
+            'DESKTOP_SESSION': ''
+        }
+        type(mock_sys).platform = mock.PropertyMock(return_value='darwin')
+        with patch.dict('imgurup.os.environ', environ_data):
+            self.assertEqual(
+                self.ImgurFactory.detect_env(is_gui),
+                MacImgur
+            )
+
+    @patch('imgurup.sys')
+    def test_detect_env_gnome(self, mock_sys):
+        from imgurup import ZenityImgur
+        is_gui = True
+        environ_data = {
+            'KDE_FULL_SESSION': '',
+            'DESKTOP_SESSION': 'gnome'
+        }
+        type(mock_sys).platform = mock.PropertyMock(return_value='linux2')
+        with patch.dict('imgurup.os.environ', environ_data):
+            self.assertEqual(
+                self.ImgurFactory.detect_env(is_gui),
+                ZenityImgur
+            )
+
+    @patch('imgurup.sys')
+    def test_detect_env_pantheon(self, mock_sys):
+        from imgurup import ZenityImgur
+        is_gui = True
+        environ_data = {
+            'KDE_FULL_SESSION': '',
+            'DESKTOP_SESSION': 'pantheon'
+        }
+        type(mock_sys).platform = mock.PropertyMock(return_value='linux2')
+        with patch.dict('imgurup.os.environ', environ_data):
+            self.assertEqual(
+                self.ImgurFactory.detect_env(is_gui),
+                ZenityImgur
+            )
 
 
 class TestCLIImgur(unittest.TestCase):
@@ -83,6 +122,7 @@ class TestCLIImgur(unittest.TestCase):
         self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
+        self._no_album_msg = self.imgur._no_album_msg
         self._token_config = (
             '[Token]\n'
             'access_token = 0000000000000000000000000000000000000000\n'
@@ -168,18 +208,19 @@ class TestCLIImgur(unittest.TestCase):
             }
         ]
 
-    def test_set_tokens_using_config(self):
+    @patch('__builtin__.open')
+    def test_set_tokens_using_config(self, mock_open):
         import io
-        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
-            self.imgur.set_tokens_using_config()
-            self.assertEqual(
-                self.imgur._access_token,
-                '0000000000000000000000000000000000000000'
-            )
-            self.assertEqual(
-                self.imgur._refresh_token,
-                '1111111111111111111111111111111111111111'
-            )
+        mock_open.return_value = io.BytesIO(self._token_config)
+        self.imgur.set_tokens_using_config()
+        self.assertEqual(
+            self.imgur._access_token,
+            '0000000000000000000000000000000000000000'
+        )
+        self.assertEqual(
+            self.imgur._refresh_token,
+            '1111111111111111111111111111111111111111'
+        )
 
     @httpretty.activate
     def test_request_album_list(self):
@@ -190,7 +231,7 @@ class TestCLIImgur(unittest.TestCase):
             body=self._album_response,
             status=200
         )
-        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+        with patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             json_response = self.imgur.request_album_list()
             self.assertEqual(len(json_response), 1)
 
@@ -202,7 +243,7 @@ class TestCLIImgur(unittest.TestCase):
             body=self._album_response,
             status=200
         )
-        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+        with patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             json_response = self.imgur.request_album_list(account='carlcarl')
             self.assertEqual(len(json_response), 1)
 
@@ -214,15 +255,15 @@ class TestCLIImgur(unittest.TestCase):
             body=self._album_fail_response,
             status=200
         )
-        with mock.patch(
+        with patch(
             'imgurup.CLIImgur.request_new_tokens_and_update',
             return_value=None
         ):
-            with mock.patch(
+            with patch(
                 'imgurup.CLIImgur.write_tokens_to_config',
                 return_value=None
             ):
-                with mock.patch(
+                with patch(
                     'imgurup.time.sleep',
                     return_value=None
                 ):
@@ -252,11 +293,11 @@ class TestCLIImgur(unittest.TestCase):
         )
         import io
         # Fail case which without token values in config
-        with mock.patch('__builtin__.open', return_value=io.BytesIO('')):
+        with patch('__builtin__.open', return_value=io.BytesIO('')):
             self.assertRaises(SystemExit, self.imgur.request_new_tokens_and_update)
 
         # Success case
-        with mock.patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+        with patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
             self.imgur.request_new_tokens_and_update()
             self.assertEqual(
                 self.imgur._access_token,
@@ -266,6 +307,20 @@ class TestCLIImgur(unittest.TestCase):
                 self.imgur._refresh_token,
                 '3333333333333333333333333333333333333333'
             )
+
+        self.imgur._refresh_token = '3333333333333333333333333333333333333333'
+        with patch('imgurup.CLIImgur.request_new_tokens') as request_new_tokens:
+            request_new_tokens.return_value = {
+                'success': False,
+                'data': {
+                    'error': 'error'
+                }
+            }
+            self.assertRaises(
+                SystemExit,
+                self.imgur.request_new_tokens_and_update
+            )
+        self.imgur._refresh_token = None
 
     def test_is_success(self):
         response = {}
@@ -281,9 +336,9 @@ class TestCLIImgur(unittest.TestCase):
         from mock import mock_open
         self.imgur._access_token = '0000000000000000000000000000000000000000'
         self.imgur._refresh_token = '1111111111111111111111111111111111111111'
-        with mock.patch('imgurup.ConfigParser.SafeConfigParser.read'):
+        with patch('imgurup.ConfigParser.SafeConfigParser.read'):
             m = mock_open()
-            with mock.patch('__builtin__.open', m, create=True):
+            with patch('__builtin__.open', m, create=True):
                 self.imgur.write_tokens_to_config()
                 m.assert_called_once_with(self.imgur.CONFIG_PATH, 'wb')
                 handle = m()
@@ -313,16 +368,17 @@ class TestCLIImgur(unittest.TestCase):
             self._enter_token_msg
         )
 
-    def test_ask_pin(self):
+    @patch('__builtin__.raw_input')
+    def test_ask_pin(self, mock_raw_input):
         pin = '000000'
-        with mock.patch('__builtin__.raw_input', return_value=pin):
-            self.assertEqual(
-                self.imgur.ask_pin(
-                    self._auth_msg,
-                    self._auth_url,
-                    self._enter_token_msg),
-                pin
-            )
+        mock_raw_input.return_value = pin
+        self.assertEqual(
+            self.imgur.ask_pin(
+                self._auth_msg,
+                self._auth_url,
+                self._enter_token_msg),
+            pin
+        )
 
     def test_get_ask_image_path_dialog_args(self):
         self.assertRaises(
@@ -330,15 +386,23 @@ class TestCLIImgur(unittest.TestCase):
             self.imgur.get_ask_image_path_dialog_args
         )
 
-    def test_ask_image_path(self):
+    @patch('__builtin__.raw_input')
+    def test_ask_image_path(self, mock_raw_input):
         path = '/home/test/test.jpg'
-        with mock.patch('__builtin__.raw_input', return_value=path):
-            self.assertEqual(self.imgur.ask_image_path(), path)
+        mock_raw_input.return_value = path
+        self.assertEqual(self.imgur.ask_image_path(), path)
+
+    def test_get_ask_album_id_dialog_args(self):
+        self.assertRaises(
+            NotImplementedError,
+            self.imgur.get_ask_album_id_dialog_args,
+            self._albums,
+            self._no_album_msg
+        )
 
     def test_ask_album_id(self):
-        with mock.patch('__builtin__.input', return_value=1):
-            result = self.imgur.ask_album_id(self._albums)
-            self.assertEqual(result, '1')
+        with patch('__builtin__.input', return_value=1):
+            self.assertEqual(self.imgur.ask_album_id(self._albums), '1')
 
     def test_get_show_link_dialog_args(self):
         self.assertRaises(
@@ -347,17 +411,17 @@ class TestCLIImgur(unittest.TestCase):
             {}
         )
 
-    def test_show_link(self):
+    @patch('__builtin__.print')
+    def test_show_link(self, mock_print):
         image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         delete_hash = 'xxxxxxxxxxxxxxx'
-        with mock.patch('__builtin__.print') as p:
-            self.imgur.show_link(image_link, delete_hash)
-            p.assert_has_calls(
-                [
-                    call('Link: http://i.imgur.com/xxxxxxx.jpg'),
-                    call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
-                ]
-            )
+        self.imgur.show_link(image_link, delete_hash)
+        mock_print.assert_has_calls(
+            [
+                call('Link: http://i.imgur.com/xxxxxxx.jpg'),
+                call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
+            ]
+        )
 
     @httpretty.activate
     def test_request_upload_image_success(self):
@@ -374,33 +438,32 @@ class TestCLIImgur(unittest.TestCase):
         )
         self.assertEqual(len(json_response), 1)
 
+    @patch('imgurup.time.sleep')
+    @patch('imgurup.CLIImgur.write_tokens_to_config')
+    @patch('imgurup.CLIImgur.request_new_tokens_and_update')
     @httpretty.activate
-    def test_request_upload_image_fail(self):
+    def test_request_upload_image_fail(
+        self,
+        request_new_tokens_and_update,
+        write_tokens_to_config,
+        mock_sleep
+    ):
         httpretty.register_uri(
             httpretty.POST,
             'https://api.imgur.com/3/image',
             body=self._album_fail_response,
             status=200
         )
-        with mock.patch(
-            'imgurup.CLIImgur.request_new_tokens_and_update',
-            return_value=None
-        ):
-            with mock.patch(
-                'imgurup.CLIImgur.write_tokens_to_config',
-                return_value=None
-            ):
-                with mock.patch(
-                    'imgurup.time.sleep',
-                    return_value=None
-                ):
-                    self.assertRaises(
-                        SystemExit,
-                        self.imgur.request_upload_image,
-                        'https://api.imgur.com/3/image',
-                        body='',
-                        headers={}
-                    )
+        request_new_tokens_and_update.return_value = None
+        write_tokens_to_config.return_value = None
+        mock_sleep.return_value = None
+        self.assertRaises(
+            SystemExit,
+            self.imgur.request_upload_image,
+            'https://api.imgur.com/3/image',
+            body='',
+            headers={}
+        )
 
 
 class TestZenityImgur(unittest.TestCase):
@@ -460,10 +523,10 @@ class TestZenityImgur(unittest.TestCase):
             'public'
         ]
 
-    def test_show_error_and_exit(self):
-        with mock.patch('imgurup.subprocess') as subprocess:
-            subprocess.Popen.return_value.returncode = 0
-            self.assertRaises(SystemExit, self.imgur.show_error_and_exit, 1)
+    @patch('imgurup.subprocess')
+    def test_show_error_and_exit(self, subprocess):
+        subprocess.Popen.return_value.returncode = 0
+        self.assertRaises(SystemExit, self.imgur.show_error_and_exit, 1)
 
     def test_get_error_dialog_args(self):
         result = self.imgur.get_error_dialog_args()
@@ -482,7 +545,13 @@ class TestZenityImgur(unittest.TestCase):
         result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
         self.assertListEqual(result, self._enter_pin_dialog_args)
 
-    def test_ask_pin(self):
+    @patch('imgurup.subprocess')
+    @patch('imgurup.ZenityImgur.get_auth_msg_dialog_args')
+    def test_ask_pin(
+        self,
+        get_auth_msg_dialog_args,
+        subprocess
+    ):
         def _test_ask_pin(args, stdout, stderr):
             from mock import MagicMock
             m = MagicMock()
@@ -492,34 +561,28 @@ class TestZenityImgur(unittest.TestCase):
                 m.communicate = lambda: ['XXXXXX']
             return m
 
-        with mock.patch(
-            'imgurup.ZenityImgur.get_auth_msg_dialog_args',
-            return_value=self._auth_msg_dialog_args
-        ):
-            with mock.patch(
-                'imgurup.subprocess'
-            ) as subprocess:
-                subprocess.Popen.side_effect = _test_ask_pin
-                pin = self.imgur.ask_pin(
-                    self._auth_msg,
-                    self._auth_url,
-                    self._enter_token_msg
+        get_auth_msg_dialog_args.return_value = self._auth_msg_dialog_args
+        subprocess.Popen.side_effect = _test_ask_pin
+        pin = self.imgur.ask_pin(
+            self._auth_msg,
+            self._auth_url,
+            self._enter_token_msg
+        )
+        self.assertEqual(pin, 'XXXXXX')
+        subprocess.Popen.assert_has_calls(
+            [
+                call(
+                    self._auth_msg_dialog_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                ),
+                call(
+                    self._enter_pin_dialog_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
                 )
-                self.assertEqual(pin, 'XXXXXX')
-                subprocess.Popen.assert_has_calls(
-                    [
-                        call(
-                            self._auth_msg_dialog_args,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE
-                        ),
-                        call(
-                            self._enter_pin_dialog_args,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE
-                        )
-                    ]
-                )
+            ]
+        )
 
     def test_get_ask_image_path_dialog_args(self):
         result = self.imgur.get_ask_image_path_dialog_args()
@@ -529,37 +592,34 @@ class TestZenityImgur(unittest.TestCase):
         ]
         self.assertListEqual(result, args)
 
-    def test_ask_image_path(self):
-        with mock.patch('imgurup.subprocess') as subprocess:
-            def communicate_data():
-                return ['/tmp/test.jpg']
-
-            def communicate_empty():
-                return ['']
-            # Fail case
-            subprocess.Popen.return_value.communicate = communicate_empty
-            self.assertRaises(SystemExit, self.imgur.ask_image_path)
-            # Success case
-            subprocess.Popen.return_value.communicate = communicate_data
-            image_path = self.imgur.ask_image_path()
-            self.assertEqual(image_path, '/tmp/test.jpg')
+    @patch('imgurup.subprocess')
+    def test_ask_image_path(self, subprocess):
+        # Fail case
+        subprocess.Popen.return_value.communicate = lambda: ['']
+        self.assertRaises(SystemExit, self.imgur.ask_image_path)
+        # Success case
+        subprocess.Popen.return_value.communicate = lambda: ['/tmp/test.jpg']
+        image_path = self.imgur.ask_image_path()
+        self.assertEqual(image_path, '/tmp/test.jpg')
 
     def test_get_ask_album_id_dialog_args(self):
         no_album_msg = self._no_album_msg
         result = self.imgur.get_ask_album_id_dialog_args(self._albums, no_album_msg)
         self.assertListEqual(result, self._ask_album_id_dialog_args)
 
-    def test_ask_album_id(self):
-        with mock.patch(
-            'imgurup.ZenityImgur.get_ask_album_id_dialog_args',
-            return_value=self._ask_album_id_dialog_args
-        ):
-            with mock.patch('imgurup.subprocess') as subprocess:
-                subprocess.Popen.return_value.communicate = lambda: ['1']
-                result = self.imgur.ask_album_id(self._albums)
-                self.assertEqual(result, '1')
-                subprocess.Popen.return_value.communicate = lambda: ['']
-                self.assertRaises(SystemExit, self.imgur.ask_album_id, self._albums)
+    @patch('imgurup.subprocess')
+    @patch('imgurup.ZenityImgur.get_ask_album_id_dialog_args')
+    def test_ask_album_id(
+        self,
+        get_ask_album_id_dialog_args,
+        subprocess
+    ):
+        get_ask_album_id_dialog_args.return_value = self._ask_album_id_dialog_args
+        subprocess.Popen.return_value.communicate = lambda: ['1']
+        result = self.imgur.ask_album_id(self._albums)
+        self.assertEqual(result, '1')
+        subprocess.Popen.return_value.communicate = lambda: ['']
+        self.assertRaises(SystemExit, self.imgur.ask_album_id, self._albums)
 
     def test_get_show_link_dialog_args(self):
         links = (
@@ -577,27 +637,27 @@ class TestZenityImgur(unittest.TestCase):
         ]
         self.assertListEqual(result, args)
 
-    def test_show_link(self):
+    @patch('imgurup.subprocess')
+    def test_show_link(self, subprocess):
         image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         delete_hash = 'xxxxxxxxxxxxxxx'
-        with mock.patch('imgurup.subprocess') as subprocess:
-            self.imgur.show_link(image_link, delete_hash)
-            subprocess.Popen.assert_has_calls(
-                [
-                    call(
-                        [
-                            'zenity',
-                            '--info',
-                            (
-                                '--text=Link: http://i.imgur.com/xxxxxxx.jpg\n'
-                                'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
-                            )
-                        ],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE
-                    )
-                ]
-            )
+        self.imgur.show_link(image_link, delete_hash)
+        subprocess.Popen.assert_has_calls(
+            [
+                call(
+                    [
+                        'zenity',
+                        '--info',
+                        (
+                            '--text=Link: http://i.imgur.com/xxxxxxx.jpg\n'
+                            'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
+                        )
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            ]
+        )
 
 
 class TestKDEImgur(unittest.TestCase):
@@ -709,6 +769,18 @@ class TestMacImgur(unittest.TestCase):
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
         self._no_album_msg = self.imgur._no_album_msg
+        self._albums = [
+            {
+                'id': '1',
+                'title': 'hello',
+                'privacy': 'public'
+            },
+            {
+                'id': '2',
+                'title': 'hello2',
+                'privacy': 'private'
+            }
+        ]
 
     def test_get_error_dialog_args(self):
         result = self.imgur.get_error_dialog_args()
@@ -772,6 +844,26 @@ class TestMacImgur(unittest.TestCase):
         no_album_msg = self._no_album_msg
         self.failUnless(
             self.imgur.get_ask_album_id_dialog_args(albums, no_album_msg) is None
+        )
+
+    @patch('imgurup.subprocess')
+    def test_ask_album_id(self, subprocess):
+        subprocess.Popen.return_value.communicate = lambda: ['1 Public(public)']
+        self.assertEqual(
+            self.imgur.ask_album_id(self._albums),
+            '1'
+        )
+        subprocess.Popen.return_value.communicate = lambda: ['1Public(public)']
+        self.assertRaises(
+            SystemExit,
+            self.imgur.ask_album_id,
+            self._albums
+        )
+        subprocess.Popen.return_value.communicate = lambda: ['  Public(public)']
+        self.assertRaises(
+            SystemExit,
+            self.imgur.ask_album_id,
+            self._albums
         )
 
     def test_get_show_link_dialog_args(self):
