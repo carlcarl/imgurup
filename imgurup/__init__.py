@@ -763,9 +763,12 @@ class MacImgur(Imgur):
             stderr=subprocess.PIPE
         )
         album_number = choose_album_dialog.communicate()[0].strip()
-        album_number = album_number[:album_number.find(' ')]
-        if album_number == '':
-            self.show_error_and_exit('n should not be empty')
+        album_number_end = album_number.find(' ')
+        if album_number_end == -1:
+            self.show_error_and_exit(
+                'Return string format error: {{s}}'.format(s=album_number)
+            )
+        album_number = album_number[:album_number_end]
         album_number = int(album_number)
         return self._get_album_id(data_map, album_number)
 
