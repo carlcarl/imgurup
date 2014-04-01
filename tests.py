@@ -207,6 +207,8 @@ class TestCLIImgur(unittest.TestCase):
                 'privacy': 'private'
             }
         ]
+        self._image_link = 'http://i.imgur.com/xxxxxxx.jpg'
+        self._delete_hash = 'xxxxxxxxxxxxxxx'
 
     @patch('__builtin__.open')
     def test_set_tokens_using_config(self, mock_open):
@@ -451,9 +453,7 @@ class TestCLIImgur(unittest.TestCase):
 
     @patch('__builtin__.print')
     def test_show_link(self, mock_print):
-        image_link = 'http://i.imgur.com/xxxxxxx.jpg'
-        delete_hash = 'xxxxxxxxxxxxxxx'
-        self.imgur.show_link(image_link, delete_hash)
+        self.imgur.show_link(self._image_link, self._delete_hash)
         mock_print.assert_has_calls(
             [
                 call('Link: http://i.imgur.com/xxxxxxx.jpg'),
@@ -560,6 +560,8 @@ class TestZenityImgur(unittest.TestCase):
             'Do not move to any album',
             'public'
         ]
+        self._image_link = 'http://i.imgur.com/xxxxxxx.jpg'
+        self._delete_hash = 'xxxxxxxxxxxxxxx'
 
     @patch('imgurup.subprocess')
     def test_show_error_and_exit(self, subprocess):
@@ -677,9 +679,7 @@ class TestZenityImgur(unittest.TestCase):
 
     @patch('imgurup.subprocess')
     def test_show_link(self, subprocess):
-        image_link = 'http://i.imgur.com/xxxxxxx.jpg'
-        delete_hash = 'xxxxxxxxxxxxxxx'
-        self.imgur.show_link(image_link, delete_hash)
+        self.imgur.show_link(self._image_link, self._delete_hash)
         subprocess.Popen.assert_has_calls(
             [
                 call(
@@ -819,6 +819,8 @@ class TestMacImgur(unittest.TestCase):
                 'privacy': 'private'
             }
         ]
+        self._image_link = 'http://i.imgur.com/xxxxxxx.jpg'
+        self._delete_hash = 'xxxxxxxxxxxxxxx'
 
     def test_get_error_dialog_args(self):
         result = self.imgur.get_error_dialog_args()
@@ -911,4 +913,57 @@ class TestMacImgur(unittest.TestCase):
         )
         self.failUnless(
             self.imgur.get_show_link_dialog_args(links) is None
+        )
+
+    @patch('imgurup.subprocess')
+    def test_show_link(self, subprocess):
+        show_link_args = [
+            'osascript',
+            '-e',
+            (
+                'tell app "Finder" to display dialog "Image Link" '
+                'default answer "{link}" '
+                'buttons {{"Show delete link", "OK"}} '
+                'default button 2'.format(link=self._image_link)
+            ),
+        ]
+        delete_link = 'http://imgur.com/delete/{delete}'.format(delete=self._delete_hash)
+        delete_link_args = [
+            'osascript',
+            '-e',
+            (
+                'tell app "Finder" to display dialog "Delete link" '
+                'default answer "{link}"'.format(link=delete_link)
+            ),
+        ]
+
+        def _test_show_link(args, stdout, stderr):
+            from mock import MagicMock
+            m = MagicMock()
+            if args == show_link_args:
+                m.communicate = lambda: [
+                    (
+                        'button returned:Show delete link, '
+                        'text returned:http://i.imgur.com/xxxxxxx.jpg'
+                    )
+                ]
+            elif args == delete_link_args:
+                m.communicate = lambda: ['']
+            return m
+
+        subprocess.Popen.side_effect = _test_show_link
+        self.imgur.show_link(self._image_link, self._delete_hash)
+        subprocess.Popen.assert_has_calls(
+            [
+                call(
+                    show_link_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                ),
+                call(
+                    delete_link_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+            ]
         )
