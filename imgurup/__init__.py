@@ -331,7 +331,8 @@ class Imgur():
                 {
                     'client_id': self._client_id,
                     'client_secret': self._client_secret,
-                    'grant_type': 'pin', 'pin': pin
+                    'grant_type': 'pin',
+                    'pin': pin
                 }
             ),
             headers
