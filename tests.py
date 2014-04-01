@@ -380,6 +380,44 @@ class TestCLIImgur(unittest.TestCase):
             pin
         )
 
+    @patch('imgurup.CLIImgur.ask_pin')
+    @httpretty.activate
+    def test_auth(self, ask_pin):
+        ask_pin.return_value = '000000'
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.imgur.com/oauth2/token',
+            body=(
+                '{"success":false,'
+                '"data":{"error":"error"} }'
+            ),
+            status=200
+        )
+        self.assertRaises(
+            SystemExit,
+            self.imgur.auth
+        )
+
+        httpretty.register_uri(
+            httpretty.POST,
+            'https://api.imgur.com/oauth2/token',
+            body=(
+                '{"success":true,'
+                '"access_token":"1111111111111111111111111111111111111111",'
+                '"refresh_token":"2222222222222222222222222222222222222222"}'
+            ),
+            status=200
+        )
+        self.imgur.auth()
+        self.assertEqual(
+            self.imgur._access_token,
+            '1111111111111111111111111111111111111111'
+        )
+        self.assertEqual(
+            self.imgur._refresh_token,
+            '2222222222222222222222222222222222222222'
+        )
+
     def test_get_ask_image_path_dialog_args(self):
         self.assertRaises(
             NotImplementedError,
