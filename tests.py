@@ -967,3 +967,13 @@ class TestMacImgur(unittest.TestCase):
                 )
             ]
         )
+
+    @patch('imgurup.shutil.copy2')
+    @patch('imgurup.argparse')
+    def test_main(self, argparse, copy2):
+        from argparse import Namespace
+        n = Namespace()
+        n.s = True
+        argparse.ArgumentParser.return_value.parse_args = lambda: n
+        from imgurup import main
+        main()
