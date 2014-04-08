@@ -13,7 +13,7 @@ class TestImgurFactory(unittest.TestCase):
         self.imgurFactory = ImgurFactory()
 
     def test_init(self):
-        self.failUnless(self.imgurFactory is not None)
+        self.assertIsNotNone(self.ImgurFactory)
 
     def test_get_imgur(self):
         from imgurup import CLIImgur
@@ -283,7 +283,7 @@ class TestCLIImgur(unittest.TestCase):
             status=200
         )
         json_response = self.imgur.request_new_tokens()
-        self.assertDictEqual(json_response, self._token_json_response)
+        self.assertEqual(json_response, self._token_json_response)
 
     @httpretty.activate
     def test_request_new_tokens_and_update(self):
@@ -353,7 +353,7 @@ class TestCLIImgur(unittest.TestCase):
                 )
 
     def test_get_error_dialog_args(self):
-        self.failUnless(self.imgur.get_error_dialog_args() is None)
+        self.assertIsNone(self.imgur.get_error_dialog_args())
 
     def test_get_auth_msg_dialog_args(self):
         self.assertRaises(
@@ -575,15 +575,15 @@ class TestZenityImgur(unittest.TestCase):
             '--error',
             '--text=Error',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_auth_msg_dialog_args(self):
         result = self.imgur.get_auth_msg_dialog_args(self._auth_msg, self._auth_url)
-        self.assertListEqual(result, self._auth_msg_dialog_args)
+        self.assertEqual(result, self._auth_msg_dialog_args)
 
     def test_get_enter_pin_dialog_args(self):
         result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
-        self.assertListEqual(result, self._enter_pin_dialog_args)
+        self.assertEqual(result, self._enter_pin_dialog_args)
 
     @patch('imgurup.subprocess')
     @patch('imgurup.ZenityImgur.get_auth_msg_dialog_args')
@@ -630,7 +630,7 @@ class TestZenityImgur(unittest.TestCase):
             'zenity',
             '--file-selection',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     @patch('imgurup.subprocess')
     def test_ask_image_path(self, subprocess):
@@ -645,7 +645,7 @@ class TestZenityImgur(unittest.TestCase):
     def test_get_ask_album_id_dialog_args(self):
         no_album_msg = self._no_album_msg
         result = self.imgur.get_ask_album_id_dialog_args(self._albums, no_album_msg)
-        self.assertListEqual(result, self._ask_album_id_dialog_args)
+        self.assertEqual(result, self._ask_album_id_dialog_args)
 
     @patch('imgurup.subprocess')
     @patch('imgurup.ZenityImgur.get_ask_album_id_dialog_args')
@@ -675,7 +675,7 @@ class TestZenityImgur(unittest.TestCase):
                 'Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx'
             )
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     @patch('imgurup.subprocess')
     def test_show_link(self, subprocess):
@@ -715,7 +715,7 @@ class TestKDEImgur(unittest.TestCase):
             '--error',
             'Error',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_auth_msg_dialog_args(self):
         result = self.imgur.get_auth_msg_dialog_args(self._auth_msg, self._auth_url)
@@ -730,7 +730,7 @@ class TestKDEImgur(unittest.TestCase):
                 'client_id=55080e3fd8d0644&response_type=pin&state=carlcarl'
             )
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_enter_pin_dialog_args(self):
         result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
@@ -741,7 +741,7 @@ class TestKDEImgur(unittest.TestCase):
             '--inputbox',
             'Enter PIN code displayed in the browser: ',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_ask_image_path_dialog_args(self):
         result = self.imgur.get_ask_image_path_dialog_args()
@@ -750,7 +750,7 @@ class TestKDEImgur(unittest.TestCase):
             '--getopenfilename',
             '.',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_ask_album_id_dialog_args(self):
         albums = []
@@ -779,7 +779,7 @@ class TestKDEImgur(unittest.TestCase):
             '3',
             'Do not move to any album(public)',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_show_link_dialog_args(self):
         links = (
@@ -795,7 +795,7 @@ class TestKDEImgur(unittest.TestCase):
                 'Delete link: http://imgur.com/delete/bbbbb'
             )
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
 
 class TestMacImgur(unittest.TestCase):
@@ -832,7 +832,7 @@ class TestMacImgur(unittest.TestCase):
                 '"Error" as warning'
             ),
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_auth_msg_dialog_args(self):
         result = self.imgur.get_auth_msg_dialog_args(self._auth_msg, self._auth_url)
@@ -850,7 +850,7 @@ class TestMacImgur(unittest.TestCase):
                 'with icon 1'
             ),
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_enter_pin_dialog_args(self):
         result = self.imgur.get_enter_pin_dialog_args(self._enter_token_msg)
@@ -865,7 +865,7 @@ class TestMacImgur(unittest.TestCase):
             '-e',
             'text returned of result',
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_ask_image_path_dialog_args(self):
         result = self.imgur.get_ask_image_path_dialog_args()
@@ -877,13 +877,13 @@ class TestMacImgur(unittest.TestCase):
                 '(choose file with prompt "Choose Image:")'
             ),
         ]
-        self.assertListEqual(result, args)
+        self.assertEqual(result, args)
 
     def test_get_ask_album_id_dialog_args(self):
         albums = []
         no_album_msg = self._no_album_msg
-        self.failUnless(
-            self.imgur.get_ask_album_id_dialog_args(albums, no_album_msg) is None
+        self.assertIsNone(
+            self.imgur.get_ask_album_id_dialog_args(albums, no_album_msg)
         )
 
     @patch('imgurup.subprocess')
@@ -911,9 +911,7 @@ class TestMacImgur(unittest.TestCase):
             'http://imgur.com/aaaaa\n'
             'Delete link: http://imgur.com/delete/bbbbb'
         )
-        self.failUnless(
-            self.imgur.get_show_link_dialog_args(links) is None
-        )
+        self.assertIsNone(self.imgur.get_show_link_dialog_args(links))
 
     @patch('imgurup.subprocess')
     def test_show_link(self, subprocess):
