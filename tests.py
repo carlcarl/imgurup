@@ -975,3 +975,7 @@ class TestMacImgur(unittest.TestCase):
         argparse.ArgumentParser.return_value.parse_args = lambda: n
         from imgurup import main
         main()
+
+
+if __name__ == '__main__':
+    unittest.main()
