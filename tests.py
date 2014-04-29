@@ -225,7 +225,7 @@ class TestCLIImgur(unittest.TestCase):
         )
 
     @httpretty.activate
-    def test_request_album_list(self):
+    def test_request_album_list_me_success(self):
         import io
         httpretty.register_uri(
             httpretty.GET,
@@ -237,8 +237,9 @@ class TestCLIImgur(unittest.TestCase):
             json_response = self.imgur.request_album_list()
             self.assertEqual(len(json_response), 1)
 
-        httpretty.disable()
-
+    @httpretty.activate
+    def test_request_album_list_carlcarl_success(self):
+        import io
         httpretty.register_uri(
             httpretty.GET,
             "https://api.imgur.com/3/account/carlcarl/albums",
@@ -249,8 +250,8 @@ class TestCLIImgur(unittest.TestCase):
             json_response = self.imgur.request_album_list(account='carlcarl')
             self.assertEqual(len(json_response), 1)
 
-        httpretty.disable()
-
+    @httpretty.activate
+    def test_request_album_list_me_fail(self):
         httpretty.register_uri(
             httpretty.GET,
             "https://api.imgur.com/3/account/me/albums",
