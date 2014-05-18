@@ -1,7 +1,12 @@
+1.5.4
+
+
 1.5.3
+-----
 * Bug fix: Fix error with Zenity choose albums dialog
 
 1.5.2
+-----
 * Bug fix: Fix manually input the path of the image which will be uploaded
 
 1.5.1
