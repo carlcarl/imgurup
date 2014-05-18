@@ -1,5 +1,6 @@
 1.5.4
-
+-----
+* Refactoring and add testings
 
 1.5.3
 -----
