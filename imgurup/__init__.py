@@ -156,7 +156,11 @@ class Imgur():
         Set tokens to None if can't be found in config
         """
         parser = SafeConfigParser()
-        fp = open(self.CONFIG_PATH)
+        try:
+            fp = open(self.CONFIG_PATH)
+        except IOError:
+            logger.error('.imgurup.conf not exists, create the file...')
+            fp = open(self.CONFIG_PATH, 'w+')
         parser.readfp(fp)
 
         try:
