@@ -1,3 +1,7 @@
+1.5.5
+-----
+* Bug fix: if .imgurup.conf not exists, it will not create the file automatically
+
 1.5.4
 -----
 * Refactoring and add testings
