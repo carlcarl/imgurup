@@ -551,16 +551,17 @@ class Imgur():
         :return:
         """
         url = '/3/image'
-        data = {}
+        post_data = {}
         headers = {}
+        files = {'image': image_path}
+
         if image_path is None:
             image_path = self.ask_image_path()
         if meta['image_name_as_title']:
-            data['title'] = image_path.split(os.sep)[-1]
+            post_data['title'] = image_path.split(os.sep)[-1]
         if meta['anonymous']:  # Anonymous account
             print('Upload the image anonymously...')
-            files = {'image': image_path}
-            body, headers = self._encode_multipart_data(data, files)
+            body, headers = self._encode_multipart_data(post_data, files)
             headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self._client_id)
         else:
             self.set_tokens_using_config()
@@ -573,17 +574,16 @@ class Imgur():
                 albums = self.request_album_list()
                 meta['album_id'] = self.ask_album_id(albums)
                 if meta['album_id'] is not None:
+                    post_data['album_id'] = meta['album_id']
                     logger.info('Upload the image to the album...')
-                    data['album_id'] = meta['album_id']
                 else:
                     # If it's None, means user doesn't want to upload to any album
                     logger.info('Upload the image...')
             else:
                 logger.info('Upload the image to the album...')
-                data['album_id'] = meta['album_id']
+                post_data['album_id'] = meta['album_id']
 
-            files = {'image': image_path}
-            body, headers = self._encode_multipart_data(data, files)
+            body, headers = self._encode_multipart_data(post_data, files)
             headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
 
         result = self.request_upload_image(url, body, headers)
