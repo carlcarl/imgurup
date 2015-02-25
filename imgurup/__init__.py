@@ -555,6 +555,8 @@ class Imgur():
         headers = {}
         if image_path is None:
             image_path = self.ask_image_path()
+        if meta['image_name_as_title']:
+            data['title'] = image_path.split(os.sep)[-1]
         if meta['anonymous']:  # Anonymous account
             print('Upload the image anonymously...')
             files = {'image': image_path}
@@ -924,6 +926,11 @@ def main():
         help='Add command in the context menu of file manager'
         '(Support KDE and Gnome)'
     )
+    parser.add_argument(
+        '-t',
+        action='store_true',
+        help='Use image name as the title'
+    )
     args = parser.parse_args()
 
     if args.s:
@@ -936,6 +943,7 @@ def main():
         'album_id': args.d,
         'ask': args.q,
         'anonymous': args.n,
+        'image_name_as_title': args.t,
     }
     for f in args.f:
         imgur.upload(f, meta)
