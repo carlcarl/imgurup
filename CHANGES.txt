@@ -1,3 +1,7 @@
+1.5.6
+-----
+* Add -t option to use image name as the title
+
 1.5.5
 -----
 * Bug fix: if .imgurup.conf not exists, it will not create the file automatically
