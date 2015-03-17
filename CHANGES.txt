@@ -1,3 +1,7 @@
+1.5.7
+-----
+* Fix pypi pkg problem
+
 1.5.6
 -----
 * Add -t option to use image name as the title
