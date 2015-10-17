@@ -28,7 +28,8 @@ class ImgurFactory:
     You can call `detect_env` to auto get a suitable imgur class,
     and use it as argument in `get_imgur`.
     ex: `imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))`
-    you can also manually choose a imgur class, ex: `imgur = ImgurFactory.get_imgur(KDEImgur)`
+    you can also manually choose a imgur class,
+    ex: `imgur = ImgurFactory.get_imgur(KDEImgur)`
     """
 
     def __init__(self):
@@ -38,7 +39,8 @@ class ImgurFactory:
     def detect_env(is_gui=True):
         """Detect environment
 
-        :param is_gui: If False, choose CLI, otherwise detect settings and choose a GUI mode
+        :param is_gui: If False, choose CLI,
+         otherwise detect settings and choose a GUI mode
         :type is_gui: bool
         :return: Subclass of Imgur
         :rtype: type
@@ -88,7 +90,9 @@ class Imgur():
 
         self._auth_url = (
             'https://api.imgur.com/oauth2/authorize?'
-            'client_id={c_id}&response_type=pin&state=carlcarl'.format(c_id=self._client_id)
+            'client_id={c_id}&response_type=pin&state=carlcarl'.format(
+                c_id=self._client_id
+            )
         )
         self._auth_msg = ('This is the first time you use this program, '
                           'you have to visit this URL in your browser '
@@ -130,7 +134,8 @@ class Imgur():
 
         :param msg: Error message
         :type msg: str
-        :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hello']
+        :return: A list include dialog command,
+         ex: ['kdialog', '--msgbox', 'hello']
         :rtype: list
         """
 
@@ -205,7 +210,9 @@ class Imgur():
                 self._access_token
             )
             headers = {
-                'Authorization': 'Bearer {token}'.format(token=self._access_token)
+                'Authorization': 'Bearer {token}'.format(
+                    token=self._access_token
+                )
             }
         else:
             logger.info('Get album list without a access token')
@@ -381,7 +388,8 @@ class Imgur():
     def get_ask_image_path_dialog_args(self):
         """Return the subprocess args of file dialog
 
-        :return: A list include dialog command, ex: ['kdialog', '--msgbox', 'hi']
+        :return: A list include dialog command,
+         ex: ['kdialog', '--msgbox', 'hi']
         :rtype: list
         """
 
@@ -485,10 +493,15 @@ class Imgur():
         """
 
         def random_string(length):
-            return ''.join(random.choice(string.letters) for ii in range(length + 1))
+            return ''.join(
+                random.choice(string.letters) for ii in range(length + 1)
+            )
 
         def get_content_type(filename):
-            return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            return (
+                mimetypes.guess_type(filename)[0]
+                or 'application/octet-stream'
+            )
 
         def encode_field(field_name):
             return (
@@ -501,7 +514,9 @@ class Imgur():
             filename = files[field_name]
             return (
                 '--' + boundary,
-                'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
+                'Content-Disposition: form-data; name="%s"; filename="%s"' % (
+                    field_name, filename
+                ),
                 'Content-Type: %s' % get_content_type(filename),
                 '', open(filename, 'rb').read()
             )
@@ -562,29 +577,35 @@ class Imgur():
         if meta['anonymous']:  # Anonymous account
             print('Upload the image anonymously...')
             body, headers = self._encode_multipart_data(post_data, files)
-            headers['Authorization'] = 'Client-ID {client_id}'.format(client_id=self._client_id)
+            headers['Authorization'] = 'Client-ID {client_id}'.format(
+                client_id=self._client_id
+            )
         else:
             self.set_tokens_using_config()
             if self._access_token is None or self._refresh_token is None:
-                # If the tokens are empty, means this is the first time using this
-                # tool, so call auth() to get tokens
+                # If the tokens are empty, means this is the first time
+                # using this tool, so call auth() to get tokens
                 self.auth()
                 self.write_tokens_to_config()
-            if (meta['album_id'] is None) or meta['ask']:  # Means user doesn't specify the album
+            if (meta['album_id'] is None) or meta['ask']:
+                # Means user doesn't specify the album
                 albums = self.request_album_list()
                 meta['album_id'] = self.ask_album_id(albums)
                 if meta['album_id'] is not None:
                     post_data['album_id'] = meta['album_id']
                     logger.info('Upload the image to the album...')
                 else:
-                    # If it's None, means user doesn't want to upload to any album
+                    # If it's None, means user doesn't want to
+                    # upload to any album
                     logger.info('Upload the image...')
             else:
                 logger.info('Upload the image to the album...')
                 post_data['album_id'] = meta['album_id']
 
             body, headers = self._encode_multipart_data(post_data, files)
-            headers['Authorization'] = 'Bearer {access_token}'.format(access_token=self._access_token)
+            headers['Authorization'] = 'Bearer {access_token}'.format(
+                access_token=self._access_token
+            )
 
         result = self.request_upload_image(url, body, headers)
         self.show_link(result['link'], result['deletehash'])
@@ -621,7 +642,11 @@ class CLIImgur(Imgur):
         data_map = []
         print('Enter the number of the album you want to upload: ')
         for album in albums:
-            print('{i}) {album[title]}({album[privacy]})'.format(i=i, album=album))
+            print(
+                '{i}) {album[title]}({album[privacy]})'.format(
+                    i=i, album=album
+                )
+            )
             data_map.append(album)
             i += 1
         print('{i}) {msg}'.format(i=i, msg=self._no_album_msg))
@@ -635,7 +660,11 @@ class CLIImgur(Imgur):
 
     def show_link(self, image_link, delete_hash):
         print('Link: {link}'.format(link=image_link.replace('\\', '')))
-        print('Delete link: http://imgur.com/delete/{delete}'.format(delete=delete_hash))
+        print(
+            'Delete link: http://imgur.com/delete/{delete}'.format(
+                delete=delete_hash
+            )
+        )
 
 
 class KDEImgur(Imgur):
@@ -752,7 +781,12 @@ class MacImgur(Imgur):
         data_map = []
         list_str = ''
         for album in albums:
-            list_str = list_str + '"{i} {album[title]}({album[privacy]})",'.format(i=i, album=album)
+            list_str = (
+                list_str +
+                '"{i} {album[title]}({album[privacy]})",'.format(
+                    i=i, album=album
+                )
+            )
             data_map.append(album)
             i += 1
         args = [
@@ -761,7 +795,9 @@ class MacImgur(Imgur):
             (
                 'tell app "Finder" to choose from list {{{l}}} '
                 'with title "Choose From The List" with prompt "PickOne" '
-                'OK button name "Select" cancel button name "Quit"'.format(l=list_str[:-1])
+                'OK button name "Select" cancel button name "Quit"'.format(
+                    l=list_str[:-1]
+                )
             ),
         ]
         choose_album_dialog = subprocess.Popen(
@@ -802,7 +838,9 @@ class MacImgur(Imgur):
         response = show_link_dialog.communicate()[0].strip()
         response = response[response.find(':') + 1:response.find(',')]
         if response == 'Show delete link':
-            delete_link = 'http://imgur.com/delete/{delete}'.format(delete=delete_hash)
+            delete_link = 'http://imgur.com/delete/{delete}'.format(
+                delete=delete_hash
+            )
             args2 = [
                 'osascript',
                 '-e',
