@@ -4,6 +4,7 @@ imgurup
 .. image:: https://badge.fury.io/py/imgurup.png
    :target: https://pypi.python.org/pypi/imgurup
    :alt: Latest PyPI version
+.. image:: https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&service=github :target: https://coveralls.io/github/carlcarl/imgurup?branch=master
 
 Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload.
 
@@ -127,7 +128,7 @@ License
 -------
 (The MIT License)
 
-Copyright (C) 2013 黃健瑋(Chien-Wei Huang)
+Copyright (C) 2015 黃健瑋(Chien-Wei Huang)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
