@@ -499,8 +499,8 @@ class Imgur():
 
         def get_content_type(filename):
             return (
-                mimetypes.guess_type(filename)[0]
-                or 'application/octet-stream'
+                mimetypes.guess_type(filename)[0] or
+                'application/octet-stream'
             )
 
         def encode_field(field_name):
