@@ -59,7 +59,7 @@ Todo
 Customize example
 -----------------
 
-::
+.. code-block:: python
 
     from imgurup import Imgur
 
@@ -124,6 +124,7 @@ Customize example
                 '--text={links}'.format(links=links),
             ]
             return args
+
 
 License
 -------
