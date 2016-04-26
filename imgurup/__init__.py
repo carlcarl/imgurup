@@ -7,20 +7,32 @@ import sys
 import argparse
 import logging
 import subprocess
-import httplib
-import urllib
+
 import random
 import string
 import mimetypes
-import ConfigParser
-from ConfigParser import SafeConfigParser
 import json
 from abc import ABCMeta
 from abc import abstractmethod
 import time
 import shutil
 
+if sys.version_info >= (3,):
+    import http.client as httplib
+    from urllib.parse import urlencode
+    from configparser import SafeConfigParser
+    from configparser import NoOptionError, NoSectionError
+else:
+    import httplib
+    from urllib import urlencode
+    from ConfigParser import SafeConfigParser
+    from ConfigParser import NoOptionError, NoSectionError
+
 logger = logging.getLogger(__name__)
+try:
+    input = raw_input
+except NameError:
+    pass
 
 
 class ImgurFactory:
@@ -170,12 +182,12 @@ class Imgur():
 
         try:
             self._access_token = parser.get('Token', 'access_token')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (NoOptionError, NoSectionError):
             logger.warning('Can\'t find access token, set to empty')
             self._access_token = None
         try:
             self._refresh_token = parser.get('Token', 'refresh_token')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (NoOptionError, NoSectionError):
             logger.warning('Can\'t find refresh token, set to empty')
             self._refresh_token = None
         fp.close()
@@ -237,7 +249,7 @@ class Imgur():
             "Content-type": "application/x-www-form-urlencoded",
             "Accept": "text/plain"
         }
-        params = urllib.urlencode(
+        params = urlencode(
             {
                 'refresh_token': self._refresh_token,
                 'client_id': self._client_id,
@@ -338,7 +350,7 @@ class Imgur():
         self._request(
             'POST',
             token_url,
-            urllib.urlencode(
+            urlencode(
                 {
                     'client_id': self._client_id,
                     'client_secret': self._client_secret,
@@ -624,14 +636,14 @@ class CLIImgur(Imgur):
 
     def ask_pin(self, auth_msg, auth_url, enter_token_msg):
         print(auth_msg + auth_url)
-        pin = raw_input(enter_token_msg)
+        pin = input(enter_token_msg)
         return pin
 
     def get_ask_image_path_dialog_args(self):
         raise NotImplementedError()
 
     def ask_image_path(self):
-        image_path = raw_input('Enter your image location: ')
+        image_path = input('Enter your image location: ')
         return image_path
 
     def get_ask_album_id_dialog_args(self, albums, no_album_msg):

@@ -6,7 +6,11 @@ env:
   - TOXENV=py27
 
 # command to install dependencies
-install: 
+install:
+  - "pip install coveralls"
   - "pip install tox"
 # command to run tests
 script: tox
+
+after_success:
+  - coveralls
