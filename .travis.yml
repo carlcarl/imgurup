@@ -4,6 +4,7 @@ python:
 
 env:
   - TOXENV=py27
+  - TOXENV=py34
 
 # command to install dependencies
 install:
