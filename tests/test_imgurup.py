@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import pytest
 
 import mock
@@ -6,8 +8,8 @@ from mock import patch
 import httpretty
 import pytest_httpretty
 
-import __builtin__
 import io
+import sys
 
 import imgurup
 from imgurup import CLIImgur
@@ -15,6 +17,10 @@ from imgurup import MacImgur
 from imgurup import KDEImgur
 from imgurup import ZenityImgur
 
+
+def get_builtin_name(builtin_name):
+    name = ('builtins.%s' if sys.version_info >= (3,) else '__builtin__.%s') % builtin_name
+    return name
 
 
 class TestImgurFactory:
@@ -178,11 +184,11 @@ class TestCLIImgur:
         self._delete_hash = 'xxxxxxxxxxxxxxx'
 
     def test_set_tokens_using_config(self, monkeypatch):
-        mock_open = mock.Mock(return_value=io.BytesIO(self._token_config))
-        monkeypatch.setattr(__builtin__, 'open', mock_open)
-        self.imgur.set_tokens_using_config()
-        assert self.imgur._access_token == '0000000000000000000000000000000000000000'
-        assert self.imgur._refresh_token == '1111111111111111111111111111111111111111'
+
+        with patch(get_builtin_name('open'), return_value=io.StringIO(self._token_config)):
+            self.imgur.set_tokens_using_config()
+            assert self.imgur._access_token == '0000000000000000000000000000000000000000'
+            assert self.imgur._refresh_token == '1111111111111111111111111111111111111111'
 
     def test_is_success(self):
         response = {}
@@ -197,9 +203,9 @@ class TestCLIImgur:
         from mock import mock_open
         self.imgur._access_token = '0000000000000000000000000000000000000000'
         self.imgur._refresh_token = '1111111111111111111111111111111111111111'
-        with patch('imgurup.ConfigParser.SafeConfigParser.read'):
+        with patch('imgurup.SafeConfigParser.read'):
             m = mock_open()
-            with patch('__builtin__.open', m, create=True):
+            with patch(get_builtin_name('open'), m, create=True):
                 self.imgur.write_tokens_to_config()
                 m.assert_called_once_with(self.imgur.CONFIG_PATH, 'wb')
                 handle = m()
@@ -230,10 +236,9 @@ class TestCLIImgur:
             body=self._album_response,
             status=200
         )
-        mock_open = mock.Mock(return_value=io.BytesIO(self._token_config))
-        monkeypatch.setattr(__builtin__, 'open', mock_open)
-        json_response = self.imgur.request_album_list()
-        assert len(json_response) == 1
+        with patch(get_builtin_name('open'), return_value=io.StringIO(self._token_config)):
+            json_response = self.imgur.request_album_list()
+            assert len(json_response) == 1
 
     @pytest.mark.httpretty
     def test_request_album_list_carlcarl_success(self, monkeypatch):
@@ -243,10 +248,9 @@ class TestCLIImgur:
             body=self._album_response,
             status=200
         )
-        mock_open = mock.Mock(return_value=io.BytesIO(self._token_config))
-        monkeypatch.setattr(__builtin__, 'open', mock_open)
-        json_response = self.imgur.request_album_list(account='carlcarl')
-        assert len(json_response) == 1
+        with patch(get_builtin_name('open'), return_value=io.StringIO(self._token_config)):
+            json_response = self.imgur.request_album_list(account='carlcarl')
+            assert len(json_response) == 1
 
     @pytest.mark.httpretty
     def test_request_album_list_me_fail(self, monkeypatch):
@@ -295,12 +299,12 @@ class TestCLIImgur:
             status=200
         )
         # Fail case which without token values in config
-        with patch('__builtin__.open', return_value=io.BytesIO('')):
+        with patch(get_builtin_name('open'), return_value=io.StringIO('')):
             with pytest.raises(SystemExit):
                 self.imgur.request_new_tokens_and_update()
 
         # Success case
-        with patch('__builtin__.open', return_value=io.BytesIO(self._token_config)):
+        with patch(get_builtin_name('open'), return_value=io.StringIO(self._token_config)):
             self.imgur.request_new_tokens_and_update()
             assert self.imgur._access_token == '2222222222222222222222222222222222222222'
             assert self.imgur._refresh_token == '3333333333333333333333333333333333333333'
@@ -318,7 +322,7 @@ class TestCLIImgur:
 
     @pytest.fixture(scope='function')
     def mock_raw_input(self, request):
-        m = mock.patch('__builtin__.raw_input')
+        m = mock.patch('imgurup.input')
         ret = m.start()
         request.addfinalizer(m.stop)
         return ret
@@ -384,7 +388,7 @@ class TestCLIImgur:
             )
 
     def test_ask_album_id(self):
-        with patch('__builtin__.input', return_value=1):
+        with patch('imgurup.input', return_value=1):
             assert self.imgur.ask_album_id(self._albums) == '1'
 
     def test_get_show_link_dialog_args(self):
@@ -393,7 +397,7 @@ class TestCLIImgur:
 
     @pytest.fixture(scope='function')
     def mock_print(self, request):
-        m = mock.patch('__builtin__.print')
+        m = mock.patch(get_builtin_name('print'))
         ret = m.start()
         request.addfinalizer(m.stop)
         return ret

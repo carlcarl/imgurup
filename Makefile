@@ -1,8 +1,12 @@
 flake:
 	flake8 imgurup
 
-test: flake
-	py.test tests.py
+.develop:
+	pip install -e .
+	touch .develop
 
-cov coverage:
-	py.test --cov-report term-missing --cov=imgurup tests.py
+test: flake .develop
+	py.test
+
+cov coverage: flake .develop
+	py.test --cov-report term-missing --cov imgurup
