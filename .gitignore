@@ -6,4 +6,5 @@ imgur.conf
 build
 dist
 *.egg-info
+.develop
 gh-pages/
