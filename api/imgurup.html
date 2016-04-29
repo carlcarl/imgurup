@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>imgurup Package &mdash; imgurup 1.5.3 documentation</title>
+    <title>imgurup Package &mdash; imgurup 1.6.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.5.3',
+        VERSION:     '1.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="imgurup 1.5.3 documentation" href="../index.html" />
+    <link rel="top" title="imgurup 1.6.0 documentation" href="../index.html" />
     <link rel="up" title="imgurup" href="modules.html" />
     <link rel="prev" title="imgurup" href="modules.html" /> 
   </head>
@@ -42,7 +40,7 @@
         <li class="right" >
           <a href="modules.html" title="imgurup"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">imgurup 1.5.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">imgurup 1.6.0 documentation</a> &raquo;</li>
           <li><a href="modules.html" accesskey="U">imgurup</a> &raquo;</li> 
       </ul>
     </div>  
@@ -218,7 +216,8 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command, ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hi&#8217;]</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command,
+ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hi&#8217;]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -278,7 +277,8 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>str</em>) &#8211; Error message</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command, ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hello&#8217;]</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list include dialog command,
+ex: [&#8216;kdialog&#8217;, &#8216;&#8211;msgbox&#8217;, &#8216;hello&#8217;]</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -356,22 +356,10 @@
 
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.retry">
-<tt class="descname">retry</tt><big>(</big><em>tries=2</em>, <em>delay=1</em>, <em>errors=(&lt;class 'imgurup.__init__.ImgurError'&gt;</em>, <em>&lt;class 'httplib.BadStatusLine'&gt;)</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.retry" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">retry</tt><big>(</big><em>errors=(&lt;class 'imgurup.__init__.ImgurError'&gt;</em>, <em>&lt;class 'httplib.BadStatusLine'&gt;)</em><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.retry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retry calling the decorated function using an exponential backoff.</p>
 <p><a class="reference external" href="http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/">http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/</a>
 original from: <a class="reference external" href="http://wiki.python.org/moin/PythonDecoratorLibrary#Retry">http://wiki.python.org/moin/PythonDecoratorLibrary#Retry</a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tries</strong> (<em>int</em>) &#8211; number of times to try (not retry) before giving up</li>
-<li><strong>delay</strong> (<em>int</em>) &#8211; initial delay between retries in seconds</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
@@ -437,9 +425,7 @@ Set tokens to None if can&#8217;t be found in config</p>
 <dl class="method">
 <dt id="imgurup.__init__.Imgur.write_tokens_to_config">
 <tt class="descname">write_tokens_to_config</tt><big>(</big><big>)</big><a class="headerlink" href="#imgurup.__init__.Imgur.write_tokens_to_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write token value to the config
-There will be maybe more setting needed to be written to config
-So I just pass <cite>result</cite></p>
+<dd><p>Write token value to the config</p>
 </dd></dl>
 
 </dd></dl>
@@ -457,7 +443,8 @@ So I just pass <cite>result</cite></p>
 You can call <cite>detect_env</cite> to auto get a suitable imgur class,
 and use it as argument in <cite>get_imgur</cite>.
 ex: <cite>imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))</cite>
-you can also manually choose a imgur class, ex: <cite>imgur = ImgurFactory.get_imgur(KDEImgur)</cite></p>
+you can also manually choose a imgur class,
+ex: <cite>imgur = ImgurFactory.get_imgur(KDEImgur)</cite></p>
 <dl class="staticmethod">
 <dt id="imgurup.__init__.ImgurFactory.detect_env">
 <em class="property">static </em><tt class="descname">detect_env</tt><big>(</big><em>is_gui=True</em><big>)</big><a class="headerlink" href="#imgurup.__init__.ImgurFactory.detect_env" title="Permalink to this definition">¶</a></dt>
@@ -466,7 +453,8 @@ you can also manually choose a imgur class, ex: <cite>imgur = ImgurFactory.get_i
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>is_gui</strong> (<em>bool</em>) &#8211; If False, choose CLI, otherwise detect settings and choose a GUI mode</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>is_gui</strong> (<em>bool</em>) &#8211; If False, choose CLI,
+otherwise detect settings and choose a GUI mode</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Subclass of Imgur</td>
 </tr>
@@ -671,13 +659,13 @@ you can also manually choose a imgur class, ex: <cite>imgur = ImgurFactory.get_i
         <li class="right" >
           <a href="modules.html" title="imgurup"
              >previous</a> |</li>
-        <li><a href="../index.html">imgurup 1.5.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">imgurup 1.6.0 documentation</a> &raquo;</li>
           <li><a href="modules.html" >imgurup</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013, Chien-Wei Huang.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>

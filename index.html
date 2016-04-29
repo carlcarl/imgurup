@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to imgurup’s documentation! &mdash; imgurup 1.5.3 documentation</title>
+    <title>Welcome to imgurup’s documentation! &mdash; imgurup 1.6.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '1.5.3',
+        URL_ROOT:    './',
+        VERSION:     '1.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="imgurup 1.5.3 documentation" href="#" />
+    <link rel="top" title="imgurup 1.6.0 documentation" href="#" />
     <link rel="next" title="imgurup" href="api/modules.html" /> 
   </head>
   <body>
@@ -41,7 +39,7 @@
         <li class="right" >
           <a href="api/modules.html" title="imgurup"
              accesskey="N">next</a> |</li>
-        <li><a href="#">imgurup 1.5.3 documentation</a> &raquo;</li> 
+        <li><a href="#">imgurup 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -56,34 +54,44 @@
 </div>
 <div class="section" id="imgurup">
 <h1>imgurup<a class="headerlink" href="#imgurup" title="Permalink to this headline">¶</a></h1>
-<p>Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload. And you can also use your account to upload :).</p>
+<a class="reference external image-reference" href="https://pypi.python.org/pypi/imgurup"><img alt="Latest PyPI version" src="https://badge.fury.io/py/imgurup.png" /></a>
+<a class="reference external image-reference" href="https://coveralls.io/github/carlcarl/imgurup?branch=master"><img alt="https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&amp;service=github" src="https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&amp;service=github" /></a>
+<p>Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload.</p>
 <div class="section" id="feature">
 <h2>Feature<a class="headerlink" href="#feature" title="Permalink to this headline">¶</a></h2>
-<p>Support upload images(anonymously) or with your account.
-Support CLI, KDE, Zenity(GTK) and Mac dialog upload</p>
+<div class="line-block">
+<div class="line">Support upload images(anonymously) or with your account.</div>
+<div class="line">Support CLI, KDE, Zenity(GTK) and Mac dialog upload</div>
+</div>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><pre>python setup.py install</pre>
+<div class="highlight-python"><div class="highlight"><pre>python setup.py install
+</pre></div>
 </div>
 <p>or</p>
-<div class="highlight-python"><pre>sudo pip install imgurup</pre>
+<div class="highlight-python"><div class="highlight"><pre>sudo pip install imgurup
+</pre></div>
 </div>
 </div>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p><tt class="docutils literal"><span class="pre">img</span> <span class="pre">[-h]</span> <span class="pre">[-f</span> <span class="pre">[&lt;image</span> <span class="pre">path&gt;</span> <span class="pre">[&lt;image</span> <span class="pre">path&gt;</span> <span class="pre">...]]]</span> <span class="pre">[-d</span> <span class="pre">[&lt;album</span> <span class="pre">id&gt;]]</span> <span class="pre">[-g]</span> <span class="pre">[-n]</span> <span class="pre">[-q]</span></tt></p>
-<p>You can just type <tt class="docutils literal"><span class="pre">img</span></tt> without any argument, the program will ask you for another infomation.</p>
-<p>But add <tt class="docutils literal"><span class="pre">-f</span></tt> argument with your image file would be easier to use, ex: <tt class="docutils literal"><span class="pre">img</span> <span class="pre">-f</span> <span class="pre">xx.jpg</span></tt></p>
-<p>After the authentication, the access_token and refresh_token will be saved in <tt class="docutils literal"><span class="pre">~/.imgurup.conf</span></tt></p>
+<div class="line-block">
+<div class="line">You can just type <tt class="docutils literal"><span class="pre">img</span></tt> without any argument, the program will ask you for another infomation.</div>
+<div class="line">But add <tt class="docutils literal"><span class="pre">-f</span></tt> argument with your image file would be easier to use, ex: <tt class="docutils literal"><span class="pre">img</span> <span class="pre">-f</span> <span class="pre">xx.jpg</span></tt></div>
+<div class="line">After the authentication, the access_token and refresh_token will be saved in <tt class="docutils literal"><span class="pre">~/.imgurup.conf</span></tt></div>
+</div>
 <p>Optional arguments:</p>
-<div class="highlight-python"><pre>-h, --help       show this help message and exit
+<div class="highlight-python"><div class="highlight"><pre>-h, --help       show this help message and exit
 -f [&lt;image path&gt; [&lt;image path&gt; ...]] The images you want to upload
 -d [&lt;album id&gt;]  The album id you want your image to be uploaded to
 -g               GUI mode
 -n               Anonymous upload
 -s               Add command in the context menu of file manager(Support Gnome and KDE)
--q               Choose album with each file</pre>
+-q               Choose album with each file
+-t               Use image name as the title
+</pre></div>
 </div>
 </div>
 <div class="section" id="packcage-dependency">
@@ -169,7 +177,7 @@ Support CLI, KDE, Zenity(GTK) and Mac dialog upload</p>
 <div class="section" id="license">
 <h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
 <p>(The MIT License)</p>
-<p>Copyright (C) 2013 黃健瑋(Chien-Wei Huang)</p>
+<p>Copyright (C) 2012-2016 黃健瑋(Chien-Wei Huang)</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#8220;Software&#8221;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &#8220;AS IS&#8221;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
@@ -205,9 +213,7 @@ Support CLI, KDE, Zenity(GTK) and Mac dialog upload</p>
 <li><a class="reference internal" href="#license">License</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>
-</ul>
-</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
   <h4>Next topic</h4>
@@ -247,12 +253,12 @@ Support CLI, KDE, Zenity(GTK) and Mac dialog upload</p>
         <li class="right" >
           <a href="api/modules.html" title="imgurup"
              >next</a> |</li>
-        <li><a href="#">imgurup 1.5.3 documentation</a> &raquo;</li> 
+        <li><a href="#">imgurup 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013, Chien-Wei Huang.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>
