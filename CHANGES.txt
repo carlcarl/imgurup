@@ -1,3 +1,7 @@
+1.6.0
+-----
+* Support Python3
+
 1.5.7
 -----
 * Fix pypi pkg problem
