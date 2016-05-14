@@ -516,23 +516,23 @@ class Imgur:
 
         def encode_field(field_name):
             return (
-                ('--' + boundary).encode('ASCII'),
+                ('--' + boundary).encode('utf-8'),
                 ('Content-Disposition: form-data; name="%s"' % (
                     field_name
-                )).encode('ASCII'),
-                b'', data[field_name].encode('ASCII')
+                )).encode('utf-8'),
+                b'', data[field_name].encode('utf-8')
             )
 
         def encode_file(field_name):
             filename = files[field_name]
             return (
-                ('--' + boundary).encode('ASCII'),
+                ('--' + boundary).encode('utf-8'),
                 ('Content-Disposition: form-data; name="%s"; filename="%s"' % (
                     field_name, filename
-                )).encode('ASCII'),
+                )).encode('utf-8'),
                 ('Content-Type: %s' % (
                     get_content_type(filename)
-                )).encode('ASCII'),
+                )).encode('utf-8'),
                 b'', open(filename, 'rb').read()
             )
 
@@ -542,8 +542,8 @@ class Imgur:
             lines.extend(encode_field(name))
         for name in files:
             lines.extend(encode_file(name))
-        lines.extend((('--%s--' % boundary).encode('ASCII'), b''))
-        body = '\r\n'.encode('ASCII').join(lines)
+        lines.extend((('--%s--' % boundary).encode('utf-8'), b''))
+        body = '\r\n'.encode('utf-8').join(lines)
 
         headers = {
             'content-type': 'multipart/form-data; boundary=' + boundary,
