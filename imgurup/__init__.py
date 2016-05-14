@@ -28,11 +28,14 @@ else:
     from ConfigParser import SafeConfigParser
     from ConfigParser import NoOptionError, NoSectionError
 
-logger = logging.getLogger(__name__)
+# To flake8, raw_input is a undefined name in python3
+# So we need to use the try except method to make compatibility
 try:
     input = raw_input
 except NameError:
     pass
+
+logger = logging.getLogger(__name__)
 
 
 class ImgurFactory:
