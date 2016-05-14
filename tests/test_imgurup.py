@@ -10,6 +10,7 @@ import pytest_httpretty
 
 import io
 import sys
+import os
 
 import imgurup
 from imgurup import CLIImgur
@@ -417,6 +418,25 @@ class TestCLIImgur:
                 call('Delete link: http://imgur.com/delete/xxxxxxxxxxxxxxx')
             ]
         )
+
+    def test_encode_multipart_data(self):
+        """Just test if the function can work"""
+        post_data = {
+            'title': 'test',
+        }
+        files = {
+            'image': os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                'images',
+                'test.jpg'
+            ),
+        }
+        try:
+            self.imgur._encode_multipart_data(post_data, files)
+            assert True
+        except:
+            assert False
+
 
     @pytest.mark.httpretty
     def test_request_upload_image_success(self):
