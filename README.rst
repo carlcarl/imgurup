@@ -6,8 +6,9 @@ imgurup
    :alt: Latest PyPI version
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg
    :alt: MIT license
-.. image:: https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&service=github 
+.. image:: https://coveralls.io/repos/github/carlcarl/imgurup/badge.svg?branch=master
    :target: https://coveralls.io/github/carlcarl/imgurup?branch=master
+
 
 Upload to imgur using its API(v3).
 Support CLI, KDE, Zenity(GTK) and Mac dialog upload.
