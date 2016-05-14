@@ -84,6 +84,10 @@ class Imgur:
                  client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
         """Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
+        :param client_id: client id provided by Imgur API
+        :type client_id: str
+        :param client_secret: client secret provided by Imgur API
+        :type client_secret: str
         """
         self._client_id = client_id
         self._client_secret = client_secret
@@ -107,6 +111,10 @@ class Imgur:
         self._no_album_msg = 'Do not move to any album'
 
     def connect(self, url='api.imgur.com'):
+        """Connect to the api host, call this before calling upload()
+        :param url: url of API server
+        :type url: str
+        """
         self._api_url = url
         self._connect = httplib.HTTPSConnection(url)
         self._request = self._connect.request
