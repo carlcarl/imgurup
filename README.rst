@@ -7,25 +7,27 @@ imgurup
 .. image:: https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&service=github 
    :target: https://coveralls.io/github/carlcarl/imgurup?branch=master
 
-Upload to imgur using API(v3). Support CLI, KDE, Zenity(GTK) and Mac dialog upload.
+Upload to imgur using its API(v3).
+Support CLI, KDE, Zenity(GTK) and Mac dialog upload.
 
 
 Feature
 -------
-| Support upload images(anonymously) or with your account.
+| Support upload images(anonymously/account)
 | Support CLI, KDE, Zenity(GTK) and Mac dialog upload
+| Support Python 3
 
 Installation
 ------------
-::
+.. code-block:: bash
 
-	python setup.py install
+    $ sudo python setup.py install
 
 or 
 
-::
+.. code-block:: bash
 
-    sudo pip install imgurup
+    $ sudo pip install imgurup
 
 
 Usage
