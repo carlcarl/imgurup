@@ -9,7 +9,6 @@ import logging
 import subprocess
 
 import random
-import string
 import mimetypes
 import json
 from abc import ABCMeta
@@ -22,11 +21,13 @@ if sys.version_info >= (3,):
     from urllib.parse import urlencode
     from configparser import SafeConfigParser
     from configparser import NoOptionError, NoSectionError
+    from string import ascii_letters
 else:
     import httplib
     from urllib import urlencode
     from ConfigParser import SafeConfigParser
     from ConfigParser import NoOptionError, NoSectionError
+    from string import letters as ascii_letters
 
 # To flake8, raw_input is a undefined name in python3
 # So we need to use the try except method to make compatibility
@@ -40,68 +41,57 @@ logger = logging.getLogger(__name__)
 
 class ImgurFactory:
     """Used to produce imgur instance.
-    You can call `detect_env` to auto get a suitable imgur class,
-    and use it as argument in `get_imgur`.
     ex: `imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(is_gui))`
-    you can also manually choose a imgur class,
-    ex: `imgur = ImgurFactory.get_imgur(KDEImgur)`
     """
 
     def __init__(self):
         pass
 
     @staticmethod
-    def detect_env(is_gui=True):
+    def get_instance(prefer_gui=True, **kwargs):
         """Detect environment
 
-        :param is_gui: If False, choose CLI,
+        :param prefer_gui: If False, choose CLI,
          otherwise detect settings and choose a GUI mode
-        :type is_gui: bool
+        :type prefer_gui: bool
+        :param kwargs: remaining keyword arguments passed to Imgur
+        :tpe kwargs: dict
         :return: Subclass of Imgur
-        :rtype: type
+        :rtype: Imgur
         """
-        if is_gui and os.environ.get('KDE_FULL_SESSION') == 'true':
-            return KDEImgur
-        elif is_gui and sys.platform == 'darwin':
-            return MacImgur
-        elif is_gui and os.environ.get('DESKTOP_SESSION') == 'gnome':
-            return ZenityImgur
-        elif is_gui and os.environ.get('DESKTOP_SESSION') == 'pantheon':
-            return ZenityImgur
+        if prefer_gui and os.environ.get('KDE_FULL_SESSION') == 'true':
+            return KDEImgur(**kwargs)
+        elif prefer_gui and sys.platform == 'darwin':
+            return MacImgur(**kwargs)
+        elif prefer_gui and os.environ.get('DESKTOP_SESSION') == 'gnome':
+            return ZenityImgur(**kwargs)
+        elif prefer_gui and os.environ.get('DESKTOP_SESSION') == 'pantheon':
+            return ZenityImgur(**kwargs)
         else:
-            return CLIImgur
-
-    @staticmethod
-    def get_imgur(imgur_class):
-        """Get imgur instance
-
-        :param imgur_class: The subclass name of Imgur
-        :type imgur_class: type
-        :return: Imgur instance
-        """
-        return imgur_class()
+            return CLIImgur(**kwargs)
 
 
 class ImgurError(Exception):
     pass
 
 
-class Imgur():
+class Imgur:
     __metaclass__ = ABCMeta
     CONFIG_PATH = os.path.expanduser("~/.imgurup.conf")
 
-    def __init__(self, url='api.imgur.com',
+    def __init__(self,
                  client_id='55080e3fd8d0644',
                  client_secret='d021464e1b3244d6f73749b94d17916cf361da24'):
         """Initialize connection, client_id and client_secret
         Users can use their own client_id to make requests
         """
-        self._connect = httplib.HTTPSConnection(url)
         self._client_id = client_id
         self._client_secret = client_secret
         self._access_token = None
         self._refresh_token = None
-        self._request = self._connect.request
+        self._api_url = None
+        self._connect = None
+        self._request = None
 
         self._auth_url = (
             'https://api.imgur.com/oauth2/authorize?'
@@ -115,6 +105,11 @@ class Imgur():
         self._auth_msg_with_url = self._auth_msg + self._auth_url
         self._enter_token_msg = 'Enter PIN code displayed in the browser: '
         self._no_album_msg = 'Do not move to any album'
+
+    def connect(self, url='api.imgur.com'):
+        self._api_url = url
+        self._connect = httplib.HTTPSConnection(url)
+        self._request = self._connect.request
 
     def retry(errors=(ImgurError, httplib.BadStatusLine)):
         """Retry calling the decorated function using an exponential backoff.
@@ -201,7 +196,8 @@ class Imgur():
         :return: Json response
         :rtype: dict
         """
-        return json.loads(self._connect.getresponse().read().decode('utf-8'))
+        response = self._connect.getresponse().read()
+        return json.loads(response.decode('utf-8'))
 
     @retry()
     def request_album_list(self, account='me'):
@@ -396,7 +392,7 @@ class Imgur():
             parser.add_section('Token')
         parser.set('Token', 'access_token', self._access_token)
         parser.set('Token', 'refresh_token', self._refresh_token)
-        with open(self.CONFIG_PATH, 'wb') as f:
+        with open(self.CONFIG_PATH, 'w') as f:
             parser.write(f)
 
     @abstractmethod
@@ -509,7 +505,7 @@ class Imgur():
 
         def random_string(length):
             return ''.join(
-                random.choice(string.letters) for ii in range(length + 1)
+                random.choice(ascii_letters) for ii in range(length + 1)
             )
 
         def get_content_type(filename):
@@ -520,20 +516,24 @@ class Imgur():
 
         def encode_field(field_name):
             return (
-                '--' + boundary,
-                'Content-Disposition: form-data; name="%s"' % field_name,
-                '', str(data[field_name])
+                ('--' + boundary).encode('ASCII'),
+                ('Content-Disposition: form-data; name="%s"' % (
+                    field_name
+                )).encode('ASCII'),
+                b'', data[field_name].encode('ASCII')
             )
 
         def encode_file(field_name):
             filename = files[field_name]
             return (
-                '--' + boundary,
-                'Content-Disposition: form-data; name="%s"; filename="%s"' % (
+                ('--' + boundary).encode('ASCII'),
+                ('Content-Disposition: form-data; name="%s"; filename="%s"' % (
                     field_name, filename
-                ),
-                'Content-Type: %s' % get_content_type(filename),
-                '', open(filename, 'rb').read()
+                )).encode('ASCII'),
+                ('Content-Type: %s' % (
+                    get_content_type(filename)
+                )).encode('ASCII'),
+                b'', open(filename, 'rb').read()
             )
 
         boundary = random_string(30)
@@ -542,8 +542,8 @@ class Imgur():
             lines.extend(encode_field(name))
         for name in files:
             lines.extend(encode_file(name))
-        lines.extend(('--%s--' % boundary, ''))
-        body = '\r\n'.join(lines)
+        lines.extend((('--%s--' % boundary).encode('ASCII'), b''))
+        body = '\r\n'.encode('ASCII').join(lines)
 
         headers = {
             'content-type': 'multipart/form-data; boundary=' + boundary,
@@ -990,8 +990,9 @@ def main():
         shutil.copy2(os.path.dirname(__file__) + '/data/imgurup.desktop',
                      os.path.expanduser('~/.local/share/applications/'))
         return
-    imgur = ImgurFactory.get_imgur(ImgurFactory.detect_env(args.g))
 
+    imgur = ImgurFactory.get_instance(args.g)
+    imgur.connect()
     meta = {
         'album_id': args.d,
         'ask': args.q,

@@ -33,16 +33,6 @@ class TestImgurFactory:
     def test_init(self):
         assert self.ImgurFactory
 
-    def test_get_imgur(self):
-        imgur_class = CLIImgur
-        assert CLIImgur == type(self.ImgurFactory.get_imgur(imgur_class))
-
-        imgur_class = MacImgur
-        assert MacImgur == type(self.ImgurFactory.get_imgur(imgur_class))
-
-        imgur_class = KDEImgur
-        assert KDEImgur == type(self.ImgurFactory.get_imgur(imgur_class))
-
     @pytest.fixture(scope='function')
     def mock_sys(self, request):
         m = mock.patch('imgurup.sys')
@@ -50,48 +40,49 @@ class TestImgurFactory:
         request.addfinalizer(m.stop)
         return ret
 
-    def test_detect_env_cli(self, monkeypatch):
+    def test_get_instance_cli(self, monkeypatch):
         monkeypatch.delenv('KDE_FULL_SESSION', raising=False)
         monkeypatch.delenv('DESKTOP_SESSION', raising=False)
         monkeypatch.setattr(imgurup.sys, 'platform', None)
-        is_gui = True
-        assert self.ImgurFactory.detect_env(is_gui) == CLIImgur
-        is_gui = False
-        assert self.ImgurFactory.detect_env(is_gui) == CLIImgur
+        prefer_gui = True
+        assert type(self.ImgurFactory.get_instance(prefer_gui)) == CLIImgur
+        prefer_gui = False
+        assert type(self.ImgurFactory.get_instance(prefer_gui)) == CLIImgur
 
-    def test_detect_env_kde(self, monkeypatch):
+    def test_get_instance_kde(self, monkeypatch):
         monkeypatch.setenv('KDE_FULL_SESSION', 'true')
         monkeypatch.setenv('DESKTOP_SESSION', '')
         monkeypatch.setattr(imgurup.sys, 'platform', 'linux2')
-        is_gui = True
-        assert self.ImgurFactory.detect_env(is_gui) == KDEImgur
+        prefer_gui = True
+        assert type(self.ImgurFactory.get_instance(prefer_gui)) == KDEImgur
 
-    def test_detect_env_mac(self, monkeypatch):
+    def test_get_instance_mac(self, monkeypatch):
         monkeypatch.delenv('KDE_FULL_SESSION', raising=False)
         monkeypatch.delenv('DESKTOP_SESSION', raising=False)
         monkeypatch.setattr(imgurup.sys, 'platform', 'darwin')
-        is_gui = True
-        assert self.ImgurFactory.detect_env(is_gui) == MacImgur
+        prefer_gui = True
+        assert type(self.ImgurFactory.get_instance(prefer_gui) == MacImgur)
 
-    def test_detect_env_gnome(self, monkeypatch):
+    def test_get_instance_gnome(self, monkeypatch):
         monkeypatch.delenv('KDE_FULL_SESSION', raising=False)
         monkeypatch.setenv('DESKTOP_SESSION', 'gnome')
         monkeypatch.setattr(imgurup.sys, 'platform', 'linux2')
-        is_gui = True
-        assert self.ImgurFactory.detect_env((is_gui)) == ZenityImgur
+        prefer_gui = True
+        assert type(self.ImgurFactory.get_instance(prefer_gui)) == ZenityImgur
 
-    def test_detect_env_pantheon(self, monkeypatch):
+    def test_get_instance_pantheon(self, monkeypatch):
         monkeypatch.delenv('KDE_FULL_SESSION', raising=False)
         monkeypatch.setenv('DESKTOP_SESSION', 'pantheon')
         monkeypatch.setattr(imgurup.sys, 'platform', 'linux2')
-        is_gui = True
-        assert self.ImgurFactory.detect_env((is_gui)) == ZenityImgur
+        prefer_gui = True
+        assert type(self.ImgurFactory.get_instance(prefer_gui)) == ZenityImgur
 
 
 class TestCLIImgur:
 
     def setup(self):
         self.imgur = CLIImgur()
+        self.imgur.connect()
         self._enter_token_msg = self.imgur._enter_token_msg
         self._auth_url = self.imgur._auth_url
         self._auth_msg = self.imgur._auth_msg
@@ -183,6 +174,22 @@ class TestCLIImgur:
         self._image_link = 'http://i.imgur.com/xxxxxxx.jpg'
         self._delete_hash = 'xxxxxxxxxxxxxxx'
 
+    @pytest.fixture(scope='function')
+    def mock_HTTPSConnection(self, request):
+        m = mock.patch('imgurup.httplib.HTTPSConnection')
+        ret = m.start()
+        request.addfinalizer(m.stop)
+        return ret
+
+    def test_connect(self, mock_HTTPSConnection):
+        _imgur = CLIImgur()
+        _imgur.connect()
+        mock_HTTPSConnection.assert_has_calls(
+            [
+                call('api.imgur.com')
+            ]
+        )
+
     def test_set_tokens_using_config(self, monkeypatch):
 
         with patch(get_builtin_name('open'), return_value=io.StringIO(self._token_config)):
@@ -207,7 +214,7 @@ class TestCLIImgur:
             m = mock_open()
             with patch(get_builtin_name('open'), m, create=True):
                 self.imgur.write_tokens_to_config()
-                m.assert_called_once_with(self.imgur.CONFIG_PATH, 'wb')
+                m.assert_called_once_with(self.imgur.CONFIG_PATH, 'w')
                 handle = m()
                 handle.write.assert_has_calls(
                     [
