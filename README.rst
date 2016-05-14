@@ -1,9 +1,11 @@
 imgurup
 ============
 
-.. image:: https://badge.fury.io/py/imgurup.png
+.. image:: https://img.shields.io/pypi/v/imgurup.svg
    :target: https://pypi.python.org/pypi/imgurup
    :alt: Latest PyPI version
+.. image:: https://img.shields.io/badge/license-MIT-blue.svg
+   :alt: MIT license
 .. image:: https://coveralls.io/repos/carlcarl/imgurup/badge.svg?branch=master&service=github 
    :target: https://coveralls.io/github/carlcarl/imgurup?branch=master
 
